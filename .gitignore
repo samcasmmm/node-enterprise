@@ -1,0 +1,60 @@
+# Node.js
+node_modules/
+npm-debug.log
+*.env
+
+# Express.js
+dist/
+/dist
+
+# React
+/build
+/node_modules
+/public/dist
+
+# MongoDB
+*.log
+/data
+/db
+/mongod.lock
+
+# IDE and Editor files
+.idea/
+.vscode/
+*.sublime-*
+*.swp
+*.swo
+
+# Logs
+logs
+*.log*
+npm-debug.log*
+
+# Dependency directories
+/jspm_packages/
+/pack
+/bower_components/
+
+# Distribution files
+# /dist/
+/build/
+/*.zip
+
+# Environment configuration
+.env.development
+.env.test.local
+.env.production
+/env/.env.prod
+# OS generated files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Icon?
+
+# Misc
+.env
+.env.prod
+coverage/
+*.log
+*.swp
+*.swo

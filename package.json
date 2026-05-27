@@ -1,0 +1,84 @@
+{
+  "name": "node-starter-backend",
+  "version": "0.0.1",
+  "description": "Node.js backend for a scalable ticketing system with event-driven architecture.",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "author": "Sameer Bagwan",
+  "keywords": [
+    "express",
+    "node"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/[username]/[repo_name].git"
+  },
+  "homepage": "https://github.com/[username]/[repo_name]#readme",
+  "bugs": {
+    "url": "https://github.com/[username]/[repo_name]/issues"
+  },
+  "scripts": {
+    "clean": "rimraf public/dist",
+    "build": "pnpm clean && tsc && tsc-alias",
+    "dev": "cross-env NODE_ENV=development tsc-watch --onCompilationComplete \"node scripts/dev-runner.cjs\"",
+    "start": "cross-env NODE_ENV=production node ./public/dist/index.js",
+    "db:gen": "drizzle-kit generate",
+    "db:push": "drizzle-kit push",
+    "make": "node scripts/create-module.js",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier . --write",
+    "check": "prettier . --check",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "chalk": "^5.6.2",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
+    "dotenv": "^17.2.3",
+    "drizzle-orm": "^0.45.1",
+    "express": "^5.2.1",
+    "express-async-handler": "^1.2.0",
+    "helmet": "^8.1.0",
+    "inquirer": "^13.2.5",
+    "jsonwebtoken": "^9.0.3",
+    "juice": "^11.1.0",
+    "morgan": "^1.10.1",
+    "nodemailer": "^7.0.12",
+    "pg": "^8.18.0",
+    "redis": "^5.10.0",
+    "swagger-jsdoc": "^6.3.0",
+    "zod": "^4.3.5"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^5.0.2",
+    "@types/cookie-parser": "^1.4.10",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^8.5.9",
+    "@types/morgan": "^1.9.10",
+    "@types/node": "^24.10.9",
+    "@types/nodemailer": "^7.0.5",
+    "@types/pg": "^8.16.0",
+    "@types/swagger-jsdoc": "^6.0.4",
+    "@typescript-eslint/eslint-plugin": "^4.33.0",
+    "@typescript-eslint/parser": "^4.33.0",
+    "cross-env": "^10.1.0",
+    "drizzle-kit": "^0.31.9",
+    "eslint": "^7.32.0",
+    "eslint-config-prettier": "^8.10.2",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-prettier": "^3.4.1",
+    "prettier": "^3.8.1",
+    "rimraf": "^5.0.10",
+    "tsc-alias": "^1.8.16",
+    "tsc-watch": "^7.2.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}
