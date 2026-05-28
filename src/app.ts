@@ -2,8 +2,14 @@ import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import morgan from 'morgan';
-import helmet from 'helmet';
-import apiRouter from './routes/index.js';
+import { ResponseBuilderMiddleware } from './core/middlewares/response.middleware.js';
+
+import docsRouter from './modules/docs/docs.routes.js';
+import authRouter from './modules/auth/auth.routes.js';
+import tenantRouter from './modules/tenants/tenants.routes.js';
+import bookRouter from './modules/books/books.routes.js';
+
+import { notFoundMiddleware, errorHandlerMiddleware } from './core/middlewares/error.middleware.js';
 
 const app = express();
 
@@ -12,25 +18,26 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(morgan('dev'));
-app.use(helmet());
+app.use(ResponseBuilderMiddleware);
 
 app.get('/', (req, res) => {
   res.json({
-    message: 'Antigravity Multi-Tenant Enterprise API Online',
+    message: 'Antigravity Multi-Tenant Enterprise ERP API Online',
     status: 'ONLINE',
     timestamp: new Date().toISOString(),
   });
 });
 
-app.use('/api', apiRouter);
+// Modular Routes Registration
+app.use('/api/docs', docsRouter);
+app.use('/api/auth', authRouter);
+app.use('/api/tenants', tenantRouter);
+app.use('/api/tenant', tenantRouter);
+app.use('/api/books', bookRouter);
 
-app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  console.error('Express Error Intercepted:', err);
-  res.status(500).json({
-    success: false,
-    error: err.message || 'Internal Server Error',
-  });
-});
+// Global Professional Error Handlers
+app.use(notFoundMiddleware);
+app.use(errorHandlerMiddleware);
 
 export default app;
 export { app };

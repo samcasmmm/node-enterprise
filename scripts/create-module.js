@@ -78,55 +78,49 @@ export const ${moduleName}BaseSchema = z.object({
 `,
 
   /* ---------------- SERVICE ---------------- */
-
+  
   [join(moduleDir, `${moduleName}.service.ts`)]: `
-import { db } from '@/config/database.config.js';
+import { db } from '@/config/db.config.js';
 import { ${moduleName}Table } from '@/shared/database/schemas/${moduleName}.schema.js';
 import type { ${pascalName} } from './${moduleName}.types.js';
 
-export class ${pascalName}Service {
-  constructor() {}
-
-  async health(): Promise<${pascalName}[]> {
-    return db.select().from(${moduleName}Table);
-  }
+export async function health(): Promise<${pascalName}[]> {
+  return db.select().from(${moduleName}Table);
 }
 `,
 
   /* ---------------- CONTROLLER ---------------- */
 
   [join(moduleDir, `${moduleName}.controller.ts`)]: `
-import type { Request, Response } from "express";
-import type { ${pascalName}Service } from "./${moduleName}.service.js";
+import type { Request, Response } from 'express';
+import * as service from './${moduleName}.service.js';
 
-export class ${pascalName}Controller {
-  constructor(private readonly service: ${pascalName}Service) {}
-
-  async health(req: Request, res: Response) {
-    const data = await this.service.health();
+export async function health(req: Request, res: Response): Promise<void> {
+  try {
+    const data = await service.health();
     res.json({
-      module: "${moduleName}",
-      status: "ok",
+      module: '${moduleName}',
+      status: 'ok',
       data,
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      error: error.message,
     });
   }
 }
 `,
 
-  /* ---------------- ROUTE (DI LAYER) ---------------- */
+  /* ---------------- ROUTE ---------------- */
 
   [join(moduleDir, `${moduleName}.routes.ts`)]: `
-import { Router } from "express";
-import { ${pascalName}Controller } from "./${moduleName}.controller.js";
-import { ${pascalName}Service } from "./${moduleName}.service.js";
+import { Router } from 'express';
+import * as controller from './${moduleName}.controller.js';
 
 const router = Router();
 
-/* Dependency Injection Layer */
-const service = new ${pascalName}Service();
-const controller = new ${pascalName}Controller(service);
-
-router.get("/health", controller.health.bind(controller));
+router.get('/health', controller.health);
 
 export default router;
 `,

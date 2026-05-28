@@ -8,13 +8,12 @@ dotenv.config({
 
 import http from 'http';
 import app from './app.js';
-import { config } from './config/index.js';
 import { tenantCache } from './shared/cache/db-cache.js';
-import { mainPool } from './shared/database/main-db.js';
 import { logger } from './shared/utils/devHelper.js';
+import { db } from './config/db.config.js';
 
 // Fallback logic using configuration safely loaded from your environment
-const PORT = Number(config.port || process.env.PORT) || 3100;
+const PORT = Number(process.env.PORT) || 3100;
 let isShuttingDown = false;
 
 function bootstrap() {
@@ -23,7 +22,8 @@ function bootstrap() {
   server.listen(PORT);
 
   server.on('listening', () => {
-    logger.banner(`Listening on http://localhost:${PORT}`);
+    logger.banner(`Server Running: http://localhost:${PORT}`);
+    logger.banner(`Scalar Docs : http://localhost:${PORT}/api/docs`);
   });
 
   server.on('error', (error: NodeJS.ErrnoException) => {
@@ -78,8 +78,12 @@ async function shutdown(server: http.Server, signal: string) {
       logger.info('All active tenant connection pools terminated.');
 
       logger.info('Closing primary database directory pool...');
-      await mainPool.end();
+      if (db.$client && typeof db.$client.end === 'function') {
+        await db.$client.end();
+      }
+
       logger.info('Primary database connection pool terminated.');
+
 
       logger.info('Goodbye!');
       process.exit(0);
