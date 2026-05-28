@@ -120,6 +120,21 @@ import * as controller from './${moduleName}.controller.js';
 
 const router = Router();
 
+/**
+ * @openapi
+ * /api/${moduleName}/health:
+ *   get:
+ *     summary: Retrieve health status for ${moduleName}
+ *     tags:
+ *       - ${pascalName}
+ *     responses:
+ *       200:
+ *         description: Success
+ *       400:
+ *         description: Bad Request
+ *       500:
+ *         description: Server Error
+ */
 router.get('/health', controller.health);
 
 export default router;
