@@ -2,12 +2,10 @@ import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import morgan from 'morgan';
-import { ResponseBuilderMiddleware } from './core/middlewares/response.middleware.js';
+import { ResponseBuilderMiddleware } from './core/response/response.middleware.js';
 
-import docsRouter from './modules/docs/docs.routes.js';
-import authRouter from './modules/auth/auth.routes.js';
-import tenantRouter from './modules/tenants/tenants.routes.js';
-import bookRouter from './modules/books/books.routes.js';
+import docsRouter from './docs/docs.routes.js';
+import usersRouter from './modules/users/users.routes.js';
 
 import { notFoundMiddleware, errorHandlerMiddleware } from './core/middlewares/error.middleware.js';
 
@@ -22,7 +20,7 @@ app.use(ResponseBuilderMiddleware);
 
 app.get('/', (req, res) => {
   res.json({
-    message: 'Antigravity Multi-Tenant Enterprise ERP API Online',
+    message: 'Antigravity Enterprise API Online',
     status: 'ONLINE',
     timestamp: new Date().toISOString(),
   });
@@ -30,10 +28,7 @@ app.get('/', (req, res) => {
 
 // Modular Routes Registration
 app.use('/api/docs', docsRouter);
-app.use('/api/auth', authRouter);
-app.use('/api/tenants', tenantRouter);
-app.use('/api/tenant', tenantRouter);
-app.use('/api/books', bookRouter);
+app.use('/api/users', usersRouter);
 
 // Global Professional Error Handlers
 app.use(notFoundMiddleware);

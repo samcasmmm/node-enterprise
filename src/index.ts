@@ -1,19 +1,10 @@
-import dotenv from 'dotenv';
-import path from 'path';
-
-// 1. CRITICAL: Load environment variables before ANY other internal imports
-dotenv.config({
-  path: path.resolve(process.cwd(), 'env/.env.prod'),
-});
-
 import http from 'http';
 import app from './app.js';
-import { tenantCache } from './shared/cache/db-cache.js';
-import { logger } from './shared/utils/devHelper.js';
+import appConfig from './config/app.config.js';
+import { logger } from './shared/logger/index.js';
 import { db } from './config/db.config.js';
 
-// Fallback logic using configuration safely loaded from your environment
-const PORT = Number(process.env.PORT) || 3100;
+const PORT = appConfig.port || 3000;
 let isShuttingDown = false;
 
 function bootstrap() {
@@ -49,7 +40,6 @@ function bootstrap() {
   });
 }
 
-
 async function shutdown(server: http.Server, signal: string) {
   if (isShuttingDown) return;
   isShuttingDown = true;
@@ -62,7 +52,7 @@ async function shutdown(server: http.Server, signal: string) {
   }, 10000);
   timeout.unref();
 
-  // 1. Stop accepting new HTTP requests and finish active ones
+  // Stop accepting new HTTP requests and finish active ones
   server.close(async (err) => {
     clearTimeout(timeout);
 
@@ -73,17 +63,11 @@ async function shutdown(server: http.Server, signal: string) {
     }
 
     try {
-      logger.info('Cleaning up cached tenant database pools...');
-      await tenantCache.closeAll();
-      logger.info('All active tenant connection pools terminated.');
-
-      logger.info('Closing primary database directory pool...');
+      logger.info('Closing database pool...');
       if (db.$client && typeof db.$client.end === 'function') {
         await db.$client.end();
       }
-
-      logger.info('Primary database connection pool terminated.');
-
+      logger.info('Database connection pool terminated.');
 
       logger.info('Goodbye!');
       process.exit(0);
@@ -94,4 +78,4 @@ async function shutdown(server: http.Server, signal: string) {
   });
 }
 
-bootstrap();  
+bootstrap();

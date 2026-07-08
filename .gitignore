@@ -58,3 +58,6 @@ coverage/
 *.log
 *.swp
 *.swo
+
+# Drizzle Migrations
+src/database/migrations/

@@ -1,14 +1,10 @@
-import { User } from "@/types/user";
-import ResponseBuilder from "@/core/base/response.builder.js";
-import { TenantConfig } from "@/shared/database/tenant-manager.js";
+import ResponseBuilder from "../response/response.builder.js";
 
 declare global {
   namespace Express {
     interface Request {
-      user?: User;
+      user?: any;
       db?: any;
-      tenant?: TenantConfig;
-      tenantId?: number;
     }
 
     interface Response {

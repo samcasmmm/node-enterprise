@@ -1,6 +1,5 @@
-
 import { type Request, type Response, type NextFunction } from "express";
-import ResponseBuilder from '../base/response.builder.js';
+import ResponseBuilder from './response.builder.js';
 
 const ResponseBuilderMiddleware = (
   req: Request,
@@ -11,4 +10,4 @@ const ResponseBuilderMiddleware = (
   next();
 };
 
-export { ResponseBuilderMiddleware }
+export { ResponseBuilderMiddleware };

@@ -1,6 +1,8 @@
 import { type Request, type Response, type NextFunction } from 'express';
+import { HttpError } from '../errors/http.error.js';
+import { DomainError } from '../errors/domain.error.js';
 
-const isProduction = process.env.NODE_ENV === 'PROD';
+const isProduction = process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'PROD';
 
 class AppError extends Error {
   public statusCode: number;
@@ -82,19 +84,34 @@ export const errorHandlerMiddleware = (
   res: Response,
   next: NextFunction
 ) => {
-  const appError =
-    err instanceof AppError
-      ? err
-      : new InternalServerError("Something went wrong");
+  let statusCode = 500;
+  let errorCode = 'INTERNAL_ERROR';
+  let message = 'Something went wrong';
+  let extra: any = {};
 
-  const statusCode = appError.statusCode || 500;
+  if (err instanceof AppError) {
+    statusCode = err.statusCode;
+    errorCode = err.errorCode;
+    message = err.message;
+    extra = err.extra || {};
+  } else if (err instanceof HttpError) {
+    statusCode = err.statusCode;
+    errorCode = err.code;
+    message = err.message;
+  } else if (err instanceof DomainError) {
+    statusCode = 400;
+    errorCode = err.code;
+    message = err.message;
+  } else if (err instanceof Error) {
+    message = err.message;
+  }
 
   res.build
     .fail()
     .withStatus(statusCode)
-    .withMessage(appError.message)
-    .withError(appError.errorCode || "INTERNAL_ERROR", {
-      ...(appError.extra || {}),
+    .withMessage(message)
+    .withError(errorCode, {
+      ...extra,
       ...(isProduction ? {} : { stack: err.stack }),
     })
     .send();

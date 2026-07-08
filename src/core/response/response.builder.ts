@@ -1,5 +1,3 @@
-// core/base/response.builder.ts
-
 import { formatTimestamp } from '@/shared/utils/date.util.js';
 import { type Response } from "express";
 
@@ -17,6 +15,7 @@ class ResponseBuilder {
    private data: any = null;
    private meta: any = null;
    private error: ErrorPayload | null = null;
+   private moduleName = "no module";
 
    constructor(res: Response) {
       this.res = res;
@@ -55,6 +54,11 @@ class ResponseBuilder {
       return this;
    }
 
+   withModule(moduleName: string): this {
+      this.moduleName = moduleName;
+      return this;
+   }
+
    withError(code: string, details: any = null): this {
       this.error = { code, details };
       return this;
@@ -63,6 +67,7 @@ class ResponseBuilder {
       const base = {
          success: this.isSuccess,
          message: this.message,
+         module: this.moduleName,
          timestamp: formatTimestamp(new Date()),
       };
 
@@ -82,3 +87,4 @@ class ResponseBuilder {
 }
 
 export default ResponseBuilder;
+export { ResponseBuilder };

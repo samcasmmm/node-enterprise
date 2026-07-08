@@ -24,11 +24,9 @@ const pascalName =
 
 const root = process.cwd();
 const moduleDir = join(root, "src", "modules", moduleName);
-const schemaDir = join(root, "src", "shared", "database", "schemas");
 const coreTypesDir = join(root, "src", "core", "types");
 
 ensureDir(moduleDir);
-ensureDir(schemaDir);
 ensureDir(coreTypesDir);
 
 printHeader(`Creating ${pascalName} Module`);
@@ -38,17 +36,6 @@ printHeader(`Creating ${pascalName} Module`);
 /* ---------------------------------- */
 
 const files = {
-  /* ---------------- SCHEMA ---------------- */
-
-  [join(schemaDir, `${moduleName}.schema.ts`)]: `
-import { pgTable, uuid, timestamp } from 'drizzle-orm/pg-core';
-
-export const ${moduleName}Table = pgTable('${moduleName}', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-});
-`,
-
   /* ---------------- CORE TYPES DECLARATION ---------------- */
 
   [join(coreTypesDir, `${pascalName}.d.ts`)]: `
@@ -60,32 +47,34 @@ declare namespace ${pascalName}Module {
 }
 `,
 
-  /* ---------------- LOCAL TYPES ---------------- */
-
-  [join(moduleDir, `${moduleName}.types.ts`)]: `
-import { ${moduleName}Table } from '@/shared/database/schemas/${moduleName}.schema.js';
-
-export type ${pascalName} = typeof ${moduleName}Table.$inferSelect;
-`,
-
-  /* ---------------- DTO ---------------- */
+  /* ---------------- DTO & TYPES ---------------- */
 
   [join(moduleDir, `${moduleName}.dto.ts`)]: `
 import { z } from 'zod';
 
 export const ${moduleName}BaseSchema = z.object({
 });
+
+export type ${pascalName}Dto = z.infer<typeof ${moduleName}BaseSchema>;
+
+export interface ${pascalName} {
+  id: string;
+  createdAt: Date;
+}
 `,
 
   /* ---------------- SERVICE ---------------- */
   
   [join(moduleDir, `${moduleName}.service.ts`)]: `
-import { db } from '@/config/db.config.js';
-import { ${moduleName}Table } from '@/shared/database/schemas/${moduleName}.schema.js';
-import type { ${pascalName} } from './${moduleName}.types.js';
+import type { ${pascalName} } from './${moduleName}.dto.js';
 
 export async function health(): Promise<${pascalName}[]> {
-  return db.select().from(${moduleName}Table);
+  return [
+    {
+      id: '1',
+      createdAt: new Date(),
+    }
+  ];
 }
 `,
 
@@ -93,23 +82,17 @@ export async function health(): Promise<${pascalName}[]> {
 
   [join(moduleDir, `${moduleName}.controller.ts`)]: `
 import type { Request, Response } from 'express';
+import asyncHandler from 'express-async-handler';
 import * as service from './${moduleName}.service.js';
 
-export async function health(req: Request, res: Response): Promise<void> {
-  try {
-    const data = await service.health();
-    res.json({
-      module: '${moduleName}',
-      status: 'ok',
-      data,
-    });
-  } catch (error: any) {
-    res.status(500).json({
-      success: false,
-      error: error.message,
-    });
-  }
-}
+export const health = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+  const data = await service.health();
+  res.json({
+    module: '${moduleName}',
+    status: 'ok',
+    data,
+  });
+});
 `,
 
   /* ---------------- ROUTE ---------------- */
