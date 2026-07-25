@@ -13,16 +13,9 @@ import { UserService } from '@/modules/user/user.service.js';
 import { UserController } from '@/modules/user/user.controller.js';
 
 // Auth
-import { AuthService } from '@/modules/auth/auth.service.js';
+import { AuthService, OtpService, MfaService, DeviceService } from '@/modules/auth/auth.service.js';
 import { AuthController } from '@/modules/auth/auth.controller.js';
-import { SessionRepository } from '@/modules/auth/session.repository.js';
-import { OtpRepository } from '@/modules/auth/otp.repository.js';
-import { OtpService } from '@/modules/auth/otp.service.js';
-import { MfaRepository } from '@/modules/auth/mfa.repository.js';
-import { MfaService } from '@/modules/auth/mfa.service.js';
-import { DeviceRepository } from '@/modules/auth/device.repository.js';
-import { DeviceService } from '@/modules/auth/device.service.js';
-import { PasswordPolicyRepository } from '@/modules/auth/password-policy.repository.js';
+import { SessionRepository, OtpRepository, MfaRepository, DeviceRepository, PasswordPolicyRepository } from '@/modules/auth/auth.repository.js';
 
 // RBAC
 import { RoleRepository } from '@/modules/rbac/role.repository.js';

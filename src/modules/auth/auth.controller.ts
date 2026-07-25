@@ -4,10 +4,7 @@ import type { Request, Response } from 'express';
 import { TOKENS } from '@/core/container/tokens.js';
 import { HTTP_STATUS_CODES } from '@/shared/constants/index.js';
 import { UnauthorizedError } from '@/core/errors/index.js';
-import type { AuthService } from './auth.service.js';
-import type { OtpService } from './otp.service.js';
-import type { MfaService } from './mfa.service.js';
-import type { DeviceService } from './device.service.js';
+import type { AuthService, OtpService, MfaService, DeviceService } from './auth.service.js';
 
 @injectable()
 export class AuthController {
