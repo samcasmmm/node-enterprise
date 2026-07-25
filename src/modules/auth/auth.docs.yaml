@@ -1,15 +1,80 @@
 tags:
   - name: Auth
-    description: Authentication — register, login, logout, token refresh, OTP, MFA, devices
+    description: Authentication — register-tenant, login, logout, token refresh, OTP, MFA, devices
 
 paths:
+  /auth/register-tenant:
+    post:
+      tags: [Auth]
+      summary: Onboarding — Register new company & tenant owner
+      description: Single-step SaaS onboarding. Auto-provisions Tenant, User, Owner/SUPER_ADMIN role, default departments, and workspace settings inside an atomic database transaction.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, companyName, email, password]
+              properties:
+                name:
+                  type: string
+                  example: Jane Doe
+                companyName:
+                  type: string
+                  example: Acme Technologies Inc
+                email:
+                  type: string
+                  format: email
+                  example: jane.doe@acme-technologies.com
+                password:
+                  type: string
+                  minLength: 8
+                  example: P@ssw0rd2026!
+                phone:
+                  type: string
+                  example: '+15550192834'
+                country:
+                  type: string
+                  example: US
+                language:
+                  type: string
+                  default: en
+                  example: en
+      responses:
+        '201':
+          description: Tenant and administrator account created successfully
+          content:
+            application/json:
+              example:
+                success: true
+                message: Tenant and administrator account created successfully.
+                module: auth
+                data:
+                  user:
+                    id: 1
+                    name: Jane Doe
+                    email: jane.doe@acme-technologies.com
+                  tenant:
+                    id: 1
+                    name: Acme Technologies Inc
+                    slug: acme-technologies-inc
+                    status: trial
+                  roles:
+                    - id: 1
+                      name: SUPER_ADMIN
+                  permissions:
+                    - '*'
+                  accessToken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsInRlbmFudElkIjoxfQ.example_token
+                  refreshToken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjF9.example_refresh_token
+                timestamp: '2026-07-25 20:30:00'
+        '400':
+          $ref: '#/components/responses/400ValidationError'
+
   /auth/register:
     post:
       tags: [Auth]
-      summary: Register a new user account
-      description: Creates a new user under the tenant resolved from the X-Tenant-Id header.
-      parameters:
-        - $ref: '#/components/parameters/XTenantId'
+      summary: Register user under an existing tenant
+      description: Creates a user account linked to an existing tenant.
       requestBody:
         required: true
         content:
@@ -18,20 +83,20 @@ paths:
               type: object
               required: [name, email, password]
               properties:
+                tenantId:
+                  type: integer
+                  example: 1
                 name:
                   type: string
-                  example: Jane Doe
+                  example: Robert Smith
                 email:
                   type: string
                   format: email
-                  example: jane.doe@acme-enterprise.com
+                  example: robert@acme-technologies.com
                 password:
                   type: string
                   minLength: 8
-                  example: P@ssw0rd2026!
-                organizationId:
-                  type: integer
-                  example: 1
+                  example: UserPass2026!
       responses:
         '201':
           description: Account created successfully
@@ -42,19 +107,17 @@ paths:
                 message: Account created.
                 module: auth
                 data:
-                  id: 1
-                  email: jane.doe@acme-enterprise.com
-                timestamp: '2026-07-25 20:18:00'
+                  id: 2
+                  email: robert@acme-technologies.com
+                timestamp: '2026-07-25 20:30:00'
         '400':
           $ref: '#/components/responses/400ValidationError'
 
   /auth/login:
     post:
       tags: [Auth]
-      summary: Authenticate user and issue JWT tokens
-      description: Authenticates user credentials and returns JWT access and refresh tokens.
-      parameters:
-        - $ref: '#/components/parameters/XTenantId'
+      summary: Authenticate user & issue tokens
+      description: Authenticates user credentials by email across tenants. Does not require manual Tenant ID entry.
       requestBody:
         required: true
         content:
@@ -66,10 +129,10 @@ paths:
                 email:
                   type: string
                   format: email
-                  example: admin@acme-enterprise.com
+                  example: jane.doe@acme-technologies.com
                 password:
                   type: string
-                  example: Admin123!
+                  example: P@ssw0rd2026!
                 deviceFingerprint:
                   type: string
                   example: fp_macbook_pro_m2_99218
@@ -92,10 +155,21 @@ paths:
                   user:
                     id: 1
                     name: Jane Doe
-                    email: admin@acme-enterprise.com
+                    email: jane.doe@acme-technologies.com
+                    tenantId: 1
+                  tenant:
+                    id: 1
+                    name: Acme Technologies Inc
+                    slug: acme-technologies-inc
+                    status: trial
+                  roles:
+                    - id: 1
+                      name: SUPER_ADMIN
+                  permissions:
+                    - '*'
                   accessToken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsInRlbmFudElkIjoxfQ.example_access_token
                   refreshToken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjF9.example_refresh_token
-                timestamp: '2026-07-25 20:18:00'
+                timestamp: '2026-07-25 20:30:00'
         '400':
           $ref: '#/components/responses/400ValidationError'
         '401':
@@ -128,7 +202,7 @@ paths:
                 data:
                   accessToken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsInRlbmFudElkIjoxfQ.new_access_token
                   refreshToken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjF9.new_refresh_token
-                timestamp: '2026-07-25 20:18:00'
+                timestamp: '2026-07-25 20:30:00'
         '401':
           $ref: '#/components/responses/401UnauthorizedError'
 
@@ -156,7 +230,7 @@ paths:
                 success: true
                 message: Logged out.
                 module: auth
-                timestamp: '2026-07-25 20:18:00'
+                timestamp: '2026-07-25 20:30:00'
         '401':
           $ref: '#/components/responses/401UnauthorizedError'
 
@@ -177,12 +251,10 @@ paths:
                 module: auth
                 data:
                   id: 1
-                  userName: admin
-                  email: admin@acme-enterprise.com
+                  name: Jane Doe
+                  email: jane.doe@acme-technologies.com
                   tenantId: 1
-                  organizationId: 1
-                  branchId: 1
-                timestamp: '2026-07-25 20:18:00'
+                timestamp: '2026-07-25 20:30:00'
         '401':
           $ref: '#/components/responses/401UnauthorizedError'
 
@@ -200,7 +272,7 @@ paths:
               properties:
                 destination:
                   type: string
-                  example: jane.doe@acme-enterprise.com
+                  example: jane.doe@acme-technologies.com
                 purpose:
                   type: string
                   enum: [login, signup, reset_password, mfa, verify_phone, verify_email]
@@ -219,7 +291,7 @@ paths:
                 success: true
                 message: OTP sent.
                 module: auth
-                timestamp: '2026-07-25 20:18:00'
+                timestamp: '2026-07-25 20:30:00'
         '400':
           $ref: '#/components/responses/400ValidationError'
 
@@ -237,7 +309,7 @@ paths:
               properties:
                 destination:
                   type: string
-                  example: jane.doe@acme-enterprise.com
+                  example: jane.doe@acme-technologies.com
                 purpose:
                   type: string
                   example: login
@@ -255,7 +327,7 @@ paths:
                 success: true
                 message: OTP verified.
                 module: auth
-                timestamp: '2026-07-25 20:18:00'
+                timestamp: '2026-07-25 20:30:00'
         '400':
           $ref: '#/components/responses/400ValidationError'
 
@@ -291,7 +363,7 @@ paths:
                   type: totp
                   secret: 4f9d8a3e7b1c2d3e4f5a6b7c8d9e0f1a
                   isVerified: false
-                timestamp: '2026-07-25 20:18:00'
+                timestamp: '2026-07-25 20:30:00'
         '401':
           $ref: '#/components/responses/401UnauthorizedError'
 
@@ -331,7 +403,7 @@ paths:
                   type: totp
                   isVerified: true
                   isPrimary: true
-                timestamp: '2026-07-25 20:18:00'
+                timestamp: '2026-07-25 20:30:00'
         '400':
           $ref: '#/components/responses/400ValidationError'
 
@@ -356,7 +428,7 @@ paths:
                     platform: macOS 14.5
                     lastIpAddress: 192.168.1.10
                     isTrusted: true
-                timestamp: '2026-07-25 20:18:00'
+                timestamp: '2026-07-25 20:30:00'
         '401':
           $ref: '#/components/responses/401UnauthorizedError'
 
@@ -377,6 +449,6 @@ paths:
                 success: true
                 message: Device revoked.
                 module: auth
-                timestamp: '2026-07-25 20:18:00'
+                timestamp: '2026-07-25 20:30:00'
         '401':
           $ref: '#/components/responses/401UnauthorizedError'

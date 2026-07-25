@@ -1,26 +1,34 @@
 import { inject, injectable } from 'tsyringe';
 import crypto from 'crypto';
 import bcrypt from 'bcrypt';
+import { eq, inArray } from 'drizzle-orm';
+import { db } from '@/config/db.config.js';
 import { TOKENS } from '@/core/container/tokens.js';
 import { UnauthorizedError, ValidationError } from '@/core/errors/index.js';
 import { issueTokens, verifyRefreshToken, type TokenPair } from '@/core/utils/jwt.util.js';
 import type { UserRepository } from '@/modules/user/user.repository.js';
+import type { TenantRepository } from '@/modules/tenant/tenant.repository.js';
 import type {
   SessionRepository, OtpRepository, MfaRepository, DeviceRepository, PasswordPolicyRepository,
 } from './auth.repository.js';
 import type { AuditLogService } from '@/modules/audit/audit-log.service.js';
 import type { NotificationService } from '@/modules/notification/notification.service.js';
-import type { User } from '@/database/schemas/index.js';
+import {
+  tenantsTable, usersTable, rolesTable, userRolesTable, organizationsTable, departmentsTable,
+  type User, type Tenant, type Role,
+} from '@/database/schemas/index.js';
 
-export interface LoginParams {
-  tenantId: number;
+export interface RegisterTenantParams {
+  name: string;
+  companyName: string;
   email: string;
   password: string;
-  ipAddress?: string;
-  userAgent?: string;
+  phone?: string;
+  country?: string;
+  language?: string;
 }
 
-export interface RegisterParams {
+export interface RegisterUserParams {
   tenantId: number;
   organizationId?: number;
   name: string;
@@ -28,15 +36,19 @@ export interface RegisterParams {
   password: string;
 }
 
-/**
- * AuthService — login/register/refresh/logout. Issues our own JWT access +
- * refresh pair (consumed by core/middlewares/auth.middleware.ts::isAuth)
- * and records a session row + login log on every attempt.
- */
+export interface LoginParams {
+  email: string;
+  password: string;
+  tenantId?: number;
+  ipAddress?: string;
+  userAgent?: string;
+}
+
 @injectable()
 export class AuthService {
   constructor(
     @inject(TOKENS.UserRepository) private readonly userRepository: UserRepository,
+    @inject(TOKENS.TenantRepository) private readonly tenantRepository: TenantRepository,
     @inject(TOKENS.SessionRepository) private readonly sessionRepository: SessionRepository,
     @inject(TOKENS.PasswordPolicyRepository) private readonly passwordPolicyRepository: PasswordPolicyRepository,
     @inject(TOKENS.AuditLogService) private readonly auditLogService: AuditLogService,
@@ -52,7 +64,115 @@ export class AuthService {
     if (policy?.requireSymbol && !/[^A-Za-z0-9]/.test(password)) throw new ValidationError('Password must contain a symbol.');
   }
 
-  async register(params: RegisterParams): Promise<User> {
+  /**
+   * Single-step SaaS Onboarding: Auto-provisions Tenant, User, Owner/SUPER_ADMIN role,
+   * default departments & settings inside a single database transaction.
+   */
+  async registerTenant(params: RegisterTenantParams): Promise<{
+    user: User;
+    tenant: Tenant;
+    roles: Role[];
+    permissions: string[];
+    tokens: TokenPair;
+  }> {
+    const existing = await this.userRepository.findFirstByEmail(params.email);
+    if (existing) throw new ValidationError('A user with this email address already exists.');
+
+    const slug = params.companyName
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '') || `tenant-${Date.now()}`;
+
+    const passwordHash = await bcrypt.hash(params.password, 12);
+
+    return db.transaction(async (tx) => {
+      // 1. Create Tenant
+      const [tenant] = await tx
+        .insert(tenantsTable)
+        .values({
+          name: params.companyName,
+          slug,
+          status: 'trial',
+          settings: {
+            country: params.country ?? 'US',
+            language: params.language ?? 'en',
+            timezone: 'UTC',
+            currency: 'USD',
+          },
+          isActive: true,
+        } as any)
+        .returning();
+
+      // 2. Create Primary User
+      const [user] = await tx
+        .insert(usersTable)
+        .values({
+          tenantId: tenant.id,
+          name: params.name,
+          email: params.email,
+          phone: params.phone,
+          passwordHash,
+          isActive: true,
+        } as any)
+        .returning();
+
+      // 3. Seed Default Tenant Roles (SUPER_ADMIN / Owner, Admin, Manager, Employee)
+      const [ownerRole] = await tx
+        .insert(rolesTable)
+        .values({
+          tenantId: tenant.id,
+          name: 'SUPER_ADMIN',
+          description: 'Tenant Owner & Super Administrator',
+          isSystem: true,
+          isActive: true,
+        } as any)
+        .returning();
+
+      await tx.insert(rolesTable).values([
+        { tenantId: tenant.id, name: 'Admin', description: 'Administrator', isSystem: true, isActive: true },
+        { tenantId: tenant.id, name: 'Manager', description: 'Department Manager', isSystem: false, isActive: true },
+        { tenantId: tenant.id, name: 'Employee', description: 'Standard Employee', isSystem: false, isActive: true },
+      ] as any);
+
+      // 4. Assign SUPER_ADMIN role to user
+      await tx.insert(userRolesTable).values({
+        userId: user.id,
+        roleId: ownerRole.id,
+      } as any);
+
+      // 5. Seed Default Organization & Departments
+      const [org] = await tx
+        .insert(organizationsTable)
+        .values({
+          tenantId: tenant.id,
+          name: params.companyName,
+          isActive: true,
+        } as any)
+        .returning();
+
+      await tx.insert(departmentsTable).values([
+        { tenantId: tenant.id, organizationId: org.id, name: 'Executive', code: 'EXEC', isActive: true },
+        { tenantId: tenant.id, organizationId: org.id, name: 'Human Resources', code: 'HR', isActive: true },
+        { tenantId: tenant.id, organizationId: org.id, name: 'Finance & Accounting', code: 'FIN', isActive: true },
+        { tenantId: tenant.id, organizationId: org.id, name: 'Information Technology', code: 'IT', isActive: true },
+      ] as any);
+
+      // 6. Issue Tokens & Session
+      const tokens = await this.issueSession(user);
+
+      return {
+        user,
+        tenant,
+        roles: [ownerRole],
+        permissions: ['*'],
+        tokens,
+      };
+    });
+  }
+
+  /** Standard User Registration under an existing Tenant */
+  async registerUser(params: RegisterUserParams): Promise<User> {
     const existing = await this.userRepository.findByEmail(params.tenantId, params.email);
     if (existing) throw new ValidationError('A user with this email already exists.');
 
@@ -67,40 +187,106 @@ export class AuthService {
       passwordHash,
     } as any);
 
-    await this.auditLogService.recordActivity(params.tenantId, user.id, `${user.name} signed up.`, 'auth');
+    await this.auditLogService.recordActivity(params.tenantId, user.id, `${user.name} registered.`, 'auth');
     return user;
   }
 
-  async login(params: LoginParams): Promise<{ user: User; tokens: TokenPair }> {
-    const user = await this.userRepository.findByEmail(params.tenantId, params.email);
+  /**
+   * Login — resolved by email. Does not require manual Tenant ID entry.
+   * Handles single-tenant auto login or multi-tenant selection responses.
+   */
+  async login(params: LoginParams): Promise<{
+    user?: User;
+    tenant?: Tenant;
+    roles?: Role[];
+    permissions?: string[];
+    tokens?: TokenPair;
+    requiresTenantSelection?: boolean;
+    tenants?: Tenant[];
+  }> {
+    // 1. Find all user accounts matching email
+    const matchingUsers = await db
+      .select()
+      .from(usersTable)
+      .where(eq(usersTable.email, params.email));
 
-    if (!user || !user.passwordHash || !(await bcrypt.compare(params.password, user.passwordHash))) {
-      await this.auditLogService.recordLogin({
-        tenantId: params.tenantId,
-        email: params.email,
-        success: false,
-        reason: 'invalid_credentials',
-        ipAddress: params.ipAddress,
-        userAgent: params.userAgent,
-      });
+    if (matchingUsers.length === 0) {
       throw new UnauthorizedError('Invalid email or password.');
     }
 
-    if (!user.isActive) throw new UnauthorizedError('This account has been deactivated.');
+    // Filter users with matching password
+    const validUsers: User[] = [];
+    for (const u of matchingUsers) {
+      if (u.passwordHash && (await bcrypt.compare(params.password, u.passwordHash))) {
+        validUsers.push(u);
+      }
+    }
 
-    const tokens = await this.issueSession(user, params.ipAddress, params.userAgent);
+    if (validUsers.length === 0) {
+      throw new UnauthorizedError('Invalid email or password.');
+    }
 
-    await this.userRepository.updateById(user.id, { lastLoginAt: new Date() } as any);
+    // 2. If client specified a target tenantId or only belongs to 1 tenant
+    let targetUser: User | undefined;
+
+    if (params.tenantId) {
+      targetUser = validUsers.find((u) => u.tenantId === params.tenantId);
+      if (!targetUser) throw new UnauthorizedError('Invalid tenant or credentials for selected tenant.');
+    } else if (validUsers.length === 1) {
+      targetUser = validUsers[0];
+    } else {
+      // Multiple tenant memberships -> return tenant selection list
+      const tenantIds = validUsers.map((u) => u.tenantId);
+      const tenantList = await db
+        .select()
+        .from(tenantsTable)
+        .where(inArray(tenantsTable.id, tenantIds));
+
+      return {
+        requiresTenantSelection: true,
+        tenants: tenantList,
+      };
+    }
+
+    if (!targetUser.isActive) throw new UnauthorizedError('This account has been deactivated.');
+
+    // 3. Load Tenant
+    const tenant = await this.tenantRepository.findById(targetUser.tenantId);
+    if (!tenant || !tenant.isActive || tenant.status === 'cancelled') {
+      throw new UnauthorizedError('Tenant account is inactive or cancelled.');
+    }
+
+    // 4. Load Roles & Permissions
+    const userRoleRows = await db
+      .select({ role: rolesTable })
+      .from(userRolesTable)
+      .innerJoin(rolesTable, eq(userRolesTable.roleId, rolesTable.id))
+      .where(eq(userRolesTable.userId, targetUser.id));
+
+    const roles = userRoleRows.map((r) => r.role);
+    const hasSuperAdmin = roles.some((r) => r.name === 'SUPER_ADMIN' || r.name === 'Owner');
+    const permissions = hasSuperAdmin ? ['*'] : [];
+
+    // 5. Issue Tokens & Record Audit Log
+    const tokens = await this.issueSession(targetUser, params.ipAddress, params.userAgent);
+
+    await this.userRepository.updateById(targetUser.id, { lastLoginAt: new Date() } as any);
     await this.auditLogService.recordLogin({
-      tenantId: params.tenantId,
-      userId: user.id,
-      email: params.email,
+      tenantId: targetUser.tenantId,
+      userId: targetUser.id,
+      email: targetUser.email,
       success: true,
       ipAddress: params.ipAddress,
       userAgent: params.userAgent,
     });
 
-    return { user, tokens };
+    return {
+      user: targetUser,
+      tenant,
+      roles,
+      permissions,
+      tokens,
+    };
   }
 
   /** Used after an OAuth provider (Google/Microsoft/Apple) resolves an identity via better-auth. */

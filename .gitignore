@@ -61,3 +61,4 @@ coverage/
 
 # Drizzle Migrations
 src/database/migrations/
+public/

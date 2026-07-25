@@ -15,21 +15,70 @@ export class AuthController {
     @inject(TOKENS.DeviceService) private readonly deviceService: DeviceService,
   ) {}
 
-  register = asyncHandler(async (req: Request, res: Response) => {
-    const user = await this.authService.register({ ...req.body, tenantId: req.tenant!.tenantId! });
-    res.build.withModule('auth').withStatus(HTTP_STATUS_CODES.CREATED).withMessage('Account created.').withData({ id: user.id, email: user.email }).send();
+  /** Onboarding: Create Tenant + Owner User + Default Data in a single transaction */
+  registerTenant = asyncHandler(async (req: Request, res: Response) => {
+    const result = await this.authService.registerTenant(req.body);
+    res.build
+      .withModule('auth')
+      .withStatus(HTTP_STATUS_CODES.CREATED)
+      .withMessage('Tenant and administrator account created successfully.')
+      .withData({
+        user: {
+          id: result.user.id,
+          name: result.user.name,
+          email: result.user.email,
+        },
+        tenant: {
+          id: result.tenant.id,
+          name: result.tenant.name,
+          slug: result.tenant.slug,
+          status: result.tenant.status,
+        },
+        roles: result.roles.map((r) => ({ id: r.id, name: r.name })),
+        permissions: result.permissions,
+        accessToken: result.tokens.accessToken,
+        refreshToken: result.tokens.refreshToken,
+      })
+      .send();
   });
 
+  /** Register additional user under an existing tenant */
+  register = asyncHandler(async (req: Request, res: Response) => {
+    const tenantId = req.tenant?.tenantId ?? req.body.tenantId;
+    if (!tenantId) throw new UnauthorizedError('Tenant context is required for user registration.');
+    const user = await this.authService.registerUser({ ...req.body, tenantId });
+    res.build
+      .withModule('auth')
+      .withStatus(HTTP_STATUS_CODES.CREATED)
+      .withMessage('Account created.')
+      .withData({ id: user.id, email: user.email })
+      .send();
+  });
+
+  /** Login — requires email & password (no tenant ID required) */
   login = asyncHandler(async (req: Request, res: Response) => {
-    const { user, tokens } = await this.authService.login({
+    const result = await this.authService.login({
       ...req.body,
-      tenantId: req.tenant!.tenantId!,
+      tenantId: req.tenant?.tenantId ?? req.body.tenantId,
       ipAddress: req.ip,
       userAgent: req.headers['user-agent'],
     });
 
-    if (req.body.deviceFingerprint) {
-      await this.deviceService.registerOrTouch(user.id, req.body.deviceFingerprint, {
+    if (result.requiresTenantSelection) {
+      res.build
+        .withModule('auth')
+        .withStatus(HTTP_STATUS_CODES.OK)
+        .withMessage('Multiple tenant accounts found. Please select a tenant to log in.')
+        .withData({
+          requiresTenantSelection: true,
+          tenants: result.tenants?.map((t) => ({ id: t.id, name: t.name, slug: t.slug })),
+        })
+        .send();
+      return;
+    }
+
+    if (req.body.deviceFingerprint && result.user) {
+      await this.deviceService.registerOrTouch(result.user.id, req.body.deviceFingerprint, {
         name: req.body.deviceName,
         platform: req.body.platform,
         ipAddress: req.ip,
@@ -40,7 +89,24 @@ export class AuthController {
       .withModule('auth')
       .withStatus(HTTP_STATUS_CODES.OK)
       .withMessage('Login successful.')
-      .withData({ user: { id: user.id, name: user.name, email: user.email }, ...tokens })
+      .withData({
+        user: {
+          id: result.user!.id,
+          name: result.user!.name,
+          email: result.user!.email,
+          tenantId: result.user!.tenantId,
+        },
+        tenant: {
+          id: result.tenant!.id,
+          name: result.tenant!.name,
+          slug: result.tenant!.slug,
+          status: result.tenant!.status,
+        },
+        roles: result.roles?.map((r) => ({ id: r.id, name: r.name })),
+        permissions: result.permissions,
+        accessToken: result.tokens!.accessToken,
+        refreshToken: result.tokens!.refreshToken,
+      })
       .send();
   });
 
