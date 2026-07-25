@@ -1,0 +1,66 @@
+tags:
+  - name: Subscription
+    description: Subscription plans, purchases, and module entitlements
+
+paths:
+  /subscription/plans:
+    get:
+      tags: [Subscription]
+      summary: List subscription plans (paginated)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Plans fetched.
+    post:
+      tags: [Subscription]
+      summary: Create plan
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, code, price]
+              properties:
+                name: { type: string }
+                code: { type: string }
+                price: { type: string }
+                currency: { type: string, default: USD }
+                billingCycle: { type: string, enum: [monthly, yearly] }
+                moduleKeys: { type: array, items: { type: string } }
+                trialDays: { type: integer }
+      responses:
+        '201':
+          description: Plan created.
+
+  /subscription/purchase:
+    post:
+      tags: [Subscription]
+      summary: Purchase subscription plan
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [planId]
+              properties:
+                planId: { type: integer }
+      responses:
+        '201':
+          description: Plan purchased and module access activated.
+
+  /subscription/cancel:
+    post:
+      tags: [Subscription]
+      summary: Cancel active subscription
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Subscription cancelled.

@@ -176,8 +176,81 @@ router.use(
 
 export default router;
 `;
+  // --- Docs -------------------------------------------------------------------
+  files[`${moduleDir}/${entitySnake}.docs.yaml`] = `tags:
+  - name: ${Entity}s
+    description: ${Entity} management endpoints
 
-  for (const [filePath, content] of Object.entries(files)) {
+paths:
+  /${group}/${tableName}:
+    get:
+      tags: [${Entity}s]
+      summary: List all ${tableName} (paginated)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: ${Entity}s fetched.
+    post:
+      tags: [${Entity}s]
+      summary: Create ${entity}
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: { type: string }
+                description: { type: string }
+      responses:
+        '201':
+          description: ${Entity} created.
+
+  /${group}/${tableName}/{id}:
+    get:
+      tags: [${Entity}s]
+      summary: Get ${entity} by ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: ${Entity} details.
+    patch:
+      tags: [${Entity}s]
+      summary: Update ${entity}
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: ${Entity} updated.
+    delete:
+      tags: [${Entity}s]
+      summary: Delete ${entity}
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: ${Entity} deleted.
+`;  for (const [filePath, content] of Object.entries(files)) {
     if (fs.existsSync(filePath)) {
       console.log(chalk.yellow(`  skip (exists): ${path.relative(process.cwd(), filePath)}`));
       continue;

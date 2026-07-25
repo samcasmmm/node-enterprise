@@ -1,0 +1,91 @@
+tags:
+  - name: Tenants
+    description: Tenant (company) management — CRUD operations
+
+paths:
+  /tenants:
+    get:
+      tags: [Tenants]
+      summary: List all tenants (paginated)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 20 }
+      responses:
+        '200':
+          description: Tenants fetched.
+    post:
+      tags: [Tenants]
+      summary: Create tenant
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, slug]
+              properties:
+                name: { type: string }
+                slug: { type: string }
+                domain: { type: string }
+      responses:
+        '201':
+          description: Tenant created.
+
+  /tenants/{id}:
+    get:
+      tags: [Tenants]
+      summary: Get tenant by ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: Tenant details.
+    patch:
+      tags: [Tenants]
+      summary: Update tenant
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string }
+                slug: { type: string }
+                domain: { type: string }
+      responses:
+        '200':
+          description: Tenant updated.
+    delete:
+      tags: [Tenants]
+      summary: Delete tenant (soft delete)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: Tenant deleted.

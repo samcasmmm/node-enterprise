@@ -1,0 +1,42 @@
+tags:
+  - name: Settings
+    description: Tenant settings management by category
+
+paths:
+  /settings/{category}:
+    get:
+      tags: [Settings]
+      summary: Get settings by category
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: category
+          in: path
+          required: true
+          schema: { type: string, example: email }
+      responses:
+        '200':
+          description: Settings fetched.
+    put:
+      tags: [Settings]
+      summary: Update settings for a category
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: category
+          in: path
+          required: true
+          schema: { type: string, example: email }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [values]
+              properties:
+                values: { type: object }
+                secretKeys: { type: array, items: { type: string } }
+      responses:
+        '200':
+          description: Settings updated.

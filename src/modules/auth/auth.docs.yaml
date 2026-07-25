@@ -1,0 +1,192 @@
+tags:
+  - name: Auth
+    description: Authentication — register, login, logout, token refresh, OTP, MFA, devices
+
+paths:
+  /auth/register:
+    post:
+      tags: [Auth]
+      summary: Register a new user account
+      parameters:
+        - in: header
+          name: X-Tenant-Id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, email, password]
+              properties:
+                name: { type: string }
+                email: { type: string, format: email }
+                password: { type: string, minLength: 8 }
+      responses:
+        '201':
+          description: Account created successfully.
+
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Authenticate user and issue JWT tokens
+      parameters:
+        - in: header
+          name: X-Tenant-Id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, format: email }
+                password: { type: string }
+      responses:
+        '200':
+          description: Login successful.
+
+  /auth/refresh:
+    post:
+      tags: [Auth]
+      summary: Refresh access token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [refreshToken]
+              properties:
+                refreshToken: { type: string }
+      responses:
+        '200':
+          description: Token refreshed.
+
+  /auth/logout:
+    post:
+      tags: [Auth]
+      summary: Logout user session
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Logged out successfully.
+
+  /auth/me:
+    get:
+      tags: [Auth]
+      summary: Get current user profile
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: User profile details.
+
+  /auth/otp/send:
+    post:
+      tags: [Auth]
+      summary: Send OTP code
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [destination, purpose]
+              properties:
+                destination: { type: string }
+                purpose: { type: string, enum: [login, signup, reset_password, mfa, verify_phone, verify_email] }
+                channel: { type: string, enum: [email, sms] }
+      responses:
+        '200':
+          description: OTP sent.
+
+  /auth/otp/verify:
+    post:
+      tags: [Auth]
+      summary: Verify OTP code
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [destination, purpose, code]
+              properties:
+                destination: { type: string }
+                purpose: { type: string }
+                code: { type: string }
+      responses:
+        '200':
+          description: OTP verified.
+
+  /auth/mfa/enroll:
+    post:
+      tags: [Auth]
+      summary: Enroll MFA factor
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [type]
+              properties:
+                type: { type: string, enum: [totp, sms, email, webauthn] }
+      responses:
+        '201':
+          description: MFA factor enrolled.
+
+  /auth/mfa/verify:
+    post:
+      tags: [Auth]
+      summary: Verify MFA factor enrollment
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [factorId, code]
+              properties:
+                factorId: { type: integer }
+                code: { type: string }
+      responses:
+        '200':
+          description: MFA factor verified.
+
+  /auth/devices:
+    get:
+      tags: [Auth]
+      summary: List active devices
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Devices listed.
+
+  /auth/devices/{id}:
+    delete:
+      tags: [Auth]
+      summary: Revoke device
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: Device revoked.
