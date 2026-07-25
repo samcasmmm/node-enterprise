@@ -13,9 +13,15 @@ import { UnauthorizedError } from '@/core/errors/index.js';
  */
 export function tenantResolver(options: { required?: boolean } = { required: true }) {
   return (req: Request, _res: Response, next: NextFunction): void => {
-    const headerTenantId = req.header('x-tenant-id') ? Number(req.header('x-tenant-id')) : undefined;
-    const headerOrgId = req.header('x-organization-id') ? Number(req.header('x-organization-id')) : undefined;
-    const headerBranchId = req.header('x-branch-id') ? Number(req.header('x-branch-id')) : undefined;
+    const headerTenantId = req.header('x-tenant-id')
+      ? Number(req.header('x-tenant-id'))
+      : undefined;
+    const headerOrgId = req.header('x-organization-id')
+      ? Number(req.header('x-organization-id'))
+      : undefined;
+    const headerBranchId = req.header('x-branch-id')
+      ? Number(req.header('x-branch-id'))
+      : undefined;
 
     const tenantId = req.user?.tenantId ?? headerTenantId;
     const organizationId = req.user?.organizationId ?? headerOrgId;

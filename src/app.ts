@@ -1,6 +1,11 @@
 import 'reflect-metadata';
 import './core/container/register.js'; // must be imported before any module route file
-import express, { type Application, type Request, type Response, type RequestHandler } from 'express';
+import express, {
+  type Application,
+  type Request,
+  type Response,
+  type RequestHandler,
+} from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
@@ -61,7 +66,7 @@ class App {
     this.instance.use(
       morgan(env.NODE_ENV === 'production' ? 'combined' : 'dev', {
         stream: { write: (msg: string) => logger.info(msg.trim()) },
-      }) as RequestHandler
+      }) as RequestHandler,
     );
     this.instance.use(ResponseBuilderMiddleware as RequestHandler);
   }
@@ -104,4 +109,3 @@ const app = appClass.instance;
 
 export default app;
 export { app, App };
-

@@ -1,5 +1,10 @@
 import { NotFoundError } from '@/core/errors/index.js';
-import type { BaseRepository, PaginatedResult, PaginationParams, TenantScope } from './base.repository.js';
+import type {
+  BaseRepository,
+  PaginatedResult,
+  PaginationParams,
+  TenantScope,
+} from './base.repository.js';
 
 /**
  * BaseService<TSelect, TInsert>
@@ -7,7 +12,10 @@ import type { BaseRepository, PaginatedResult, PaginationParams, TenantScope } f
  * Thin orchestration layer over a BaseRepository. Module-specific services
  * extend this and override/add business rules; CRUD plumbing is free.
  */
-export abstract class BaseService<TSelect extends Record<string, any>, TInsert extends Record<string, any>> {
+export abstract class BaseService<
+  TSelect extends Record<string, any>,
+  TInsert extends Record<string, any>,
+> {
   protected constructor(
     protected readonly repository: BaseRepository<any, TSelect, TInsert>,
     protected readonly resourceName: string = 'Resource',

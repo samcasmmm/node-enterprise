@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction } from 'express';
-import { HTTP_MESSAGE, HTTP_STATUS_CODES } from '@/shared/constants/index.js'
+import { HTTP_MESSAGE, HTTP_STATUS_CODES } from '@/shared/constants/index.js';
 
 type RateLimitEntry = {
   count: number;
@@ -11,11 +11,7 @@ const MAX_REQUESTS = 10;
 
 const store = new Map<string, RateLimitEntry>();
 
-export function rateLimiter(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-): void {
+export function rateLimiter(req: Request, res: Response, next: NextFunction): void {
   const key = `register-rate-limit:${req.ip}`;
   const now = Date.now();
 

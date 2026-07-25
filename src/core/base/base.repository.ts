@@ -60,7 +60,8 @@ export abstract class BaseRepository<
     const clauses: SQL[] = [];
     const cols = this.table as any;
     if (scope.tenantId && cols.tenantId) clauses.push(eq(cols.tenantId, scope.tenantId));
-    if (scope.organizationId && cols.organizationId) clauses.push(eq(cols.organizationId, scope.organizationId));
+    if (scope.organizationId && cols.organizationId)
+      clauses.push(eq(cols.organizationId, scope.organizationId));
     if (scope.branchId && cols.branchId) clauses.push(eq(cols.branchId, scope.branchId));
     return clauses.length ? and(...clauses) : undefined;
   }
@@ -77,7 +78,10 @@ export abstract class BaseRepository<
     return (where ? query.where(where) : query) as unknown as Promise<TSelect[]>;
   }
 
-  async paginate(params: PaginationParams = {}, scope?: TenantScope): Promise<PaginatedResult<TSelect>> {
+  async paginate(
+    params: PaginationParams = {},
+    scope?: TenantScope,
+  ): Promise<PaginatedResult<TSelect>> {
     const page = Math.max(1, params.page ?? 1);
     const limit = Math.min(100, Math.max(1, params.limit ?? 20));
     const offset = (page - 1) * limit;
@@ -86,13 +90,21 @@ export abstract class BaseRepository<
     const sortCol: PgColumn = params.sortBy ? (this.table as any)[params.sortBy] : this.idColumn;
     const orderBy = params.sortDir === 'asc' ? asc(sortCol) : desc(sortCol);
 
-    let query = db.select().from(this.table as any).$dynamic();
+    let query = db
+      .select()
+      .from(this.table as any)
+      .$dynamic();
     if (where) query = query.where(where);
     query = query.orderBy(orderBy).limit(limit).offset(offset);
 
-    const countQuery = db.select({ id: this.idColumn }).from(this.table as any).$dynamic();
+    const countQuery = db
+      .select({ id: this.idColumn })
+      .from(this.table as any)
+      .$dynamic();
     const rows = (await query) as unknown as TSelect[];
-    const countRows = (where ? await countQuery.where(where) : await countQuery) as unknown as any[];
+    const countRows = (where
+      ? await countQuery.where(where)
+      : await countQuery) as unknown as any[];
 
     const total = countRows.length;
     return {
@@ -102,28 +114,50 @@ export abstract class BaseRepository<
   }
 
   async findById(id: string | number, scope?: TenantScope): Promise<TSelect | null> {
-    const where = this.combine(eq(this.idColumn, id as any), this.notDeletedClause(), this.scopeClause(scope));
-    const [row] = await db.select().from(this.table as any).where(where!).limit(1);
+    const where = this.combine(
+      eq(this.idColumn, id as any),
+      this.notDeletedClause(),
+      this.scopeClause(scope),
+    );
+    const [row] = await db
+      .select()
+      .from(this.table as any)
+      .where(where!)
+      .limit(1);
     return (row as TSelect) ?? null;
   }
 
   async findOne(clause: SQL, scope?: TenantScope): Promise<TSelect | null> {
     const where = this.combine(clause, this.notDeletedClause(), this.scopeClause(scope));
-    const [row] = await db.select().from(this.table as any).where(where!).limit(1);
+    const [row] = await db
+      .select()
+      .from(this.table as any)
+      .where(where!)
+      .limit(1);
     return (row as TSelect) ?? null;
   }
 
   async findMany(clause: SQL, scope?: TenantScope): Promise<TSelect[]> {
     const where = this.combine(clause, this.notDeletedClause(), this.scopeClause(scope));
-    return db.select().from(this.table as any).where(where!) as unknown as Promise<TSelect[]>;
+    return db
+      .select()
+      .from(this.table as any)
+      .where(where!) as unknown as Promise<TSelect[]>;
   }
 
   async create(data: TInsert): Promise<TSelect> {
-    const [row] = (await db.insert(this.table as any).values(data as any).returning()) as unknown as any[];
+    const [row] = (await db
+      .insert(this.table as any)
+      .values(data as any)
+      .returning()) as unknown as any[];
     return row as TSelect;
   }
 
-  async updateById(id: string | number, data: Partial<TInsert>, scope?: TenantScope): Promise<TSelect | null> {
+  async updateById(
+    id: string | number,
+    data: Partial<TInsert>,
+    scope?: TenantScope,
+  ): Promise<TSelect | null> {
     const where = this.combine(eq(this.idColumn, id as any), this.scopeClause(scope));
     const [row] = await db
       .update(this.table as any)
@@ -143,13 +177,19 @@ export abstract class BaseRepository<
         .returning();
       return !!row;
     }
-    const deleted = (await db.delete(this.table as any).where(where!).returning()) as unknown as any[];
+    const deleted = (await db
+      .delete(this.table as any)
+      .where(where!)
+      .returning()) as unknown as any[];
     return deleted.length > 0;
   }
 
   async hardDeleteById(id: string | number, scope?: TenantScope): Promise<boolean> {
     const where = this.combine(eq(this.idColumn, id as any), this.scopeClause(scope));
-    const deleted = (await db.delete(this.table as any).where(where!).returning()) as unknown as any[];
+    const deleted = (await db
+      .delete(this.table as any)
+      .where(where!)
+      .returning()) as unknown as any[];
     return deleted.length > 0;
   }
 }

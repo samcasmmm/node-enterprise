@@ -9,17 +9,31 @@ import type { SubscriptionService } from './subscription.service.js';
 
 @injectable()
 export class SubscriptionController extends BaseController<Subscription, any> {
-  constructor(@inject(TOKENS.SubscriptionService) private readonly subscriptionService: SubscriptionService) {
+  constructor(
+    @inject(TOKENS.SubscriptionService) private readonly subscriptionService: SubscriptionService,
+  ) {
     super(subscriptionService, 'subscription');
   }
 
   purchase = asyncHandler(async (req: Request, res: Response) => {
-    const subscription = await this.subscriptionService.purchase(req.tenant!.tenantId!, req.body.planId);
-    res.build.withModule('subscription').withStatus(HTTP_STATUS_CODES.CREATED).withMessage('Plan purchased.').withData(subscription).send();
+    const subscription = await this.subscriptionService.purchase(
+      req.tenant!.tenantId!,
+      req.body.planId,
+    );
+    res.build
+      .withModule('subscription')
+      .withStatus(HTTP_STATUS_CODES.CREATED)
+      .withMessage('Plan purchased.')
+      .withData(subscription)
+      .send();
   });
 
   cancel = asyncHandler(async (req: Request, res: Response) => {
     await this.subscriptionService.cancel(req.tenant!.tenantId!);
-    res.build.withModule('subscription').withStatus(HTTP_STATUS_CODES.OK).withMessage('Subscription cancelled.').send();
+    res.build
+      .withModule('subscription')
+      .withStatus(HTTP_STATUS_CODES.OK)
+      .withMessage('Subscription cancelled.')
+      .send();
   });
 }

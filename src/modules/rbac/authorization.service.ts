@@ -25,7 +25,10 @@ export interface AuthzScope {
  */
 @injectable()
 export class AuthorizationService {
-  constructor(@inject(TOKENS.PermissionRepository) private readonly permissionRepository: PermissionRepository) {}
+  constructor(
+    @inject(TOKENS.PermissionRepository)
+    private readonly permissionRepository: PermissionRepository,
+  ) {}
 
   async can(userId: number, permissionKey: string, scope: AuthzScope = {}): Promise<boolean> {
     const [moduleKey] = permissionKey.split(':');
@@ -47,13 +50,24 @@ export class AuthorizationService {
   private async isModuleEnabled(tenantId: number, moduleKey: string): Promise<boolean> {
     // Core modules (auth, user, rbac, settings, subscription, audit, notification, tenant)
     // are always available — they're the foundation, not purchasable add-ons.
-    const CORE_MODULES = new Set(['tenant', 'auth', 'user', 'rbac', 'settings', 'subscription', 'audit', 'notification']);
+    const CORE_MODULES = new Set([
+      'tenant',
+      'auth',
+      'user',
+      'rbac',
+      'settings',
+      'subscription',
+      'audit',
+      'notification',
+    ]);
     if (CORE_MODULES.has(moduleKey)) return true;
 
     const [access] = await db
       .select()
       .from(moduleAccessTable)
-      .where(and(eq(moduleAccessTable.tenantId, tenantId), eq(moduleAccessTable.moduleKey, moduleKey)))
+      .where(
+        and(eq(moduleAccessTable.tenantId, tenantId), eq(moduleAccessTable.moduleKey, moduleKey)),
+      )
       .limit(1);
 
     if (!access || !access.isEnabled) return false;

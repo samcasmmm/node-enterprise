@@ -11,7 +11,10 @@ import type { TenantScope } from './base.repository.js';
  * this to get list/paginate/getById/create/update/remove for free, then add
  * module-specific endpoints on top.
  */
-export abstract class BaseController<TSelect extends Record<string, any>, TInsert extends Record<string, any>> {
+export abstract class BaseController<
+  TSelect extends Record<string, any>,
+  TInsert extends Record<string, any>,
+> {
   protected constructor(
     protected readonly service: BaseService<TSelect, TInsert>,
     protected readonly moduleName: string,
@@ -28,7 +31,12 @@ export abstract class BaseController<TSelect extends Record<string, any>, TInser
   list = asyncHandler(async (req: Request, res: Response) => {
     const { page, limit, sortBy, sortDir } = req.query as Record<string, string>;
     const result = await this.service.paginate(
-      { page: page ? Number(page) : undefined, limit: limit ? Number(limit) : undefined, sortBy, sortDir: sortDir as 'asc' | 'desc' },
+      {
+        page: page ? Number(page) : undefined,
+        limit: limit ? Number(limit) : undefined,
+        sortBy,
+        sortDir: sortDir as 'asc' | 'desc',
+      },
       this.scopeFrom(req),
     );
     res.build

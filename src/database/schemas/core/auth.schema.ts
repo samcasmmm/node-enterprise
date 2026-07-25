@@ -1,4 +1,15 @@
-import { pgTable, varchar,  boolean, text, timestamp, integer, jsonb, index, pgEnum, bigint } from 'drizzle-orm/pg-core';
+import {
+  pgTable,
+  varchar,
+  boolean,
+  text,
+  timestamp,
+  integer,
+  jsonb,
+  index,
+  pgEnum,
+  bigint,
+} from 'drizzle-orm/pg-core';
 import { idColumn, timestamps } from './_shared.columns.js';
 import { tenantsTable } from './multi-tenancy.schema.js';
 import { usersTable } from './users.schema.js';
@@ -12,7 +23,9 @@ export const sessionsTable = pgTable(
   'sessions',
   {
     id: idColumn(),
-    userId: bigint('user_id', { mode: 'number' }).notNull().references(() => usersTable.id, { onDelete: 'cascade' }),
+    userId: bigint('user_id', { mode: 'number' })
+      .notNull()
+      .references(() => usersTable.id, { onDelete: 'cascade' }),
     token: varchar('token', { length: 255 }).notNull(),
     ipAddress: varchar('ip_address', { length: 60 }),
     userAgent: text('user_agent'),
@@ -32,7 +45,9 @@ export const oauthAccountsTable = pgTable(
   'oauth_accounts',
   {
     id: idColumn(),
-    userId: bigint('user_id', { mode: 'number' }).notNull().references(() => usersTable.id, { onDelete: 'cascade' }),
+    userId: bigint('user_id', { mode: 'number' })
+      .notNull()
+      .references(() => usersTable.id, { onDelete: 'cascade' }),
     provider: oauthProviderEnum('provider').notNull(),
     providerAccountId: varchar('provider_account_id', { length: 255 }).notNull(),
     accessToken: text('access_token'),
@@ -43,14 +58,23 @@ export const oauthAccountsTable = pgTable(
   (t) => ({ userIdx: index('oauth_accounts_user_idx').on(t.userId) }),
 );
 
-export const otpPurposeEnum = pgEnum('otp_purpose', ['login', 'signup', 'reset_password', 'mfa', 'verify_phone', 'verify_email']);
+export const otpPurposeEnum = pgEnum('otp_purpose', [
+  'login',
+  'signup',
+  'reset_password',
+  'mfa',
+  'verify_phone',
+  'verify_email',
+]);
 
 /** OTPs — one-time passcodes for login/verification, channel-agnostic. */
 export const otpsTable = pgTable(
   'otps',
   {
     id: idColumn(),
-    userId: bigint('user_id', { mode: 'number' }).references(() => usersTable.id, { onDelete: 'cascade' }),
+    userId: bigint('user_id', { mode: 'number' }).references(() => usersTable.id, {
+      onDelete: 'cascade',
+    }),
     destination: varchar('destination', { length: 255 }).notNull(), // email or phone
     codeHash: text('code_hash').notNull(),
     purpose: otpPurposeEnum('purpose').notNull(),
@@ -69,7 +93,9 @@ export const mfaFactorsTable = pgTable(
   'mfa_factors',
   {
     id: idColumn(),
-    userId: bigint('user_id', { mode: 'number' }).notNull().references(() => usersTable.id, { onDelete: 'cascade' }),
+    userId: bigint('user_id', { mode: 'number' })
+      .notNull()
+      .references(() => usersTable.id, { onDelete: 'cascade' }),
     type: mfaTypeEnum('type').notNull(),
     secret: text('secret'),
     isVerified: boolean('is_verified').default(false).notNull(),
@@ -85,7 +111,9 @@ export const devicesTable = pgTable(
   'devices',
   {
     id: idColumn(),
-    userId: bigint('user_id', { mode: 'number' }).notNull().references(() => usersTable.id, { onDelete: 'cascade' }),
+    userId: bigint('user_id', { mode: 'number' })
+      .notNull()
+      .references(() => usersTable.id, { onDelete: 'cascade' }),
     name: varchar('name', { length: 150 }),
     fingerprint: varchar('fingerprint', { length: 255 }).notNull(),
     platform: varchar('platform', { length: 60 }),
@@ -103,7 +131,9 @@ export const passwordPoliciesTable = pgTable(
   'password_policies',
   {
     id: idColumn(),
-    tenantId: bigint('tenant_id', { mode: 'number' }).notNull().references(() => tenantsTable.id, { onDelete: 'cascade' }),
+    tenantId: bigint('tenant_id', { mode: 'number' })
+      .notNull()
+      .references(() => tenantsTable.id, { onDelete: 'cascade' }),
     minLength: integer('min_length').default(8).notNull(),
     requireUppercase: boolean('require_uppercase').default(true).notNull(),
     requireLowercase: boolean('require_lowercase').default(true).notNull(),

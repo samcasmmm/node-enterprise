@@ -15,7 +15,13 @@ import { UserController } from '@/modules/user/user.controller.js';
 // Auth
 import { AuthService, OtpService, MfaService, DeviceService } from '@/modules/auth/auth.service.js';
 import { AuthController } from '@/modules/auth/auth.controller.js';
-import { SessionRepository, OtpRepository, MfaRepository, DeviceRepository, PasswordPolicyRepository } from '@/modules/auth/auth.repository.js';
+import {
+  SessionRepository,
+  OtpRepository,
+  MfaRepository,
+  DeviceRepository,
+  PasswordPolicyRepository,
+} from '@/modules/auth/auth.repository.js';
 
 // RBAC
 import { RoleRepository } from '@/modules/rbac/role.repository.js';

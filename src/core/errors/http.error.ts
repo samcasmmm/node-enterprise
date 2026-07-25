@@ -2,7 +2,11 @@ import { z } from 'zod';
 import { AppError } from './domain.error.js';
 
 export class HttpError extends Error {
-  constructor(public statusCode: number, message: string, public code: string = 'HTTP_ERROR') {
+  constructor(
+    public statusCode: number,
+    message: string,
+    public code: string = 'HTTP_ERROR',
+  ) {
     super(message);
     this.name = 'HttpError';
   }

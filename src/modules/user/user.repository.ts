@@ -20,11 +20,7 @@ export class UserRepository extends BaseRepository<typeof usersTable, User, NewU
   }
 
   async findFirstByEmail(email: string): Promise<User | null> {
-    const [row] = await db
-      .select()
-      .from(usersTable)
-      .where(eq(usersTable.email, email))
-      .limit(1);
+    const [row] = await db.select().from(usersTable).where(eq(usersTable.email, email)).limit(1);
     return row ?? null;
   }
 }

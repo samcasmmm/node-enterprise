@@ -13,7 +13,9 @@ import type { SettingsRepository } from './settings.repository.js';
  */
 @injectable()
 export class SettingsService extends BaseService<Setting, NewSetting> {
-  constructor(@inject(TOKENS.SettingsRepository) private readonly settingsRepository: SettingsRepository) {
+  constructor(
+    @inject(TOKENS.SettingsRepository) private readonly settingsRepository: SettingsRepository,
+  ) {
     super(settingsRepository, 'Setting');
   }
 
@@ -22,9 +24,20 @@ export class SettingsService extends BaseService<Setting, NewSetting> {
     return Object.fromEntries(rows.map((r) => [r.key, r.value]));
   }
 
-  async setCategory(tenantId: number, category: string, values: Record<string, unknown>, secretKeys: string[] = []): Promise<void> {
+  async setCategory(
+    tenantId: number,
+    category: string,
+    values: Record<string, unknown>,
+    secretKeys: string[] = [],
+  ): Promise<void> {
     for (const [key, value] of Object.entries(values)) {
-      await this.settingsRepository.upsert(tenantId, category, key, value, secretKeys.includes(key));
+      await this.settingsRepository.upsert(
+        tenantId,
+        category,
+        key,
+        value,
+        secretKeys.includes(key),
+      );
     }
   }
 }

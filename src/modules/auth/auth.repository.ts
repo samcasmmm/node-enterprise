@@ -2,8 +2,16 @@ import { injectable } from 'tsyringe';
 import { eq, and, gt, isNull } from 'drizzle-orm';
 import { db } from '@/config/db.config.js';
 import {
-  sessionsTable, otpsTable, mfaFactorsTable, devicesTable, passwordPoliciesTable,
-  type Session, type Otp, type MfaFactor, type Device, type PasswordPolicy,
+  sessionsTable,
+  otpsTable,
+  mfaFactorsTable,
+  devicesTable,
+  passwordPoliciesTable,
+  type Session,
+  type Otp,
+  type MfaFactor,
+  type Device,
+  type PasswordPolicy,
 } from '@/database/schemas/index.js';
 import { BaseRepository } from '@/core/base/base.repository.js';
 
@@ -14,7 +22,11 @@ export class SessionRepository extends BaseRepository<typeof sessionsTable, Sess
   }
 
   async findByToken(token: string): Promise<Session | null> {
-    const [row] = await db.select().from(sessionsTable).where(eq(sessionsTable.token, token)).limit(1);
+    const [row] = await db
+      .select()
+      .from(sessionsTable)
+      .where(eq(sessionsTable.token, token))
+      .limit(1);
     return row ?? null;
   }
 }
@@ -74,7 +86,11 @@ export class DeviceRepository extends BaseRepository<typeof devicesTable, Device
 }
 
 @injectable()
-export class PasswordPolicyRepository extends BaseRepository<typeof passwordPoliciesTable, PasswordPolicy, any> {
+export class PasswordPolicyRepository extends BaseRepository<
+  typeof passwordPoliciesTable,
+  PasswordPolicy,
+  any
+> {
   constructor() {
     super(passwordPoliciesTable);
   }

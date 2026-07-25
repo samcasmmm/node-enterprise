@@ -21,14 +21,22 @@ export interface CrudRouteOptions {
  * gets a consistent REST surface (list/paginate, get, create, update, remove)
  * with auth + RBAC + validation wired in one call.
  */
-export function buildCrudRouter(controller: BaseController<any, any>, options: CrudRouteOptions): Router {
+export function buildCrudRouter(
+  controller: BaseController<any, any>,
+  options: CrudRouteOptions,
+): Router {
   const router = Router();
   const guard: RequestHandler[] = options.public ? [] : [isAuth];
 
   options.extend?.(router);
 
   router.get('/', ...guard, requirePermission(`${options.permissionKey}:read`), controller.list);
-  router.get('/:id', ...guard, requirePermission(`${options.permissionKey}:read`), controller.getById);
+  router.get(
+    '/:id',
+    ...guard,
+    requirePermission(`${options.permissionKey}:read`),
+    controller.getById,
+  );
   router.post(
     '/',
     ...guard,
@@ -43,7 +51,12 @@ export function buildCrudRouter(controller: BaseController<any, any>, options: C
     ...(options.updateSchema ? [validate(options.updateSchema)] : []),
     controller.update,
   );
-  router.delete('/:id', ...guard, requirePermission(`${options.permissionKey}:delete`), controller.remove);
+  router.delete(
+    '/:id',
+    ...guard,
+    requirePermission(`${options.permissionKey}:delete`),
+    controller.remove,
+  );
 
   return router;
 }

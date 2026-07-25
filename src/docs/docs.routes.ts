@@ -14,7 +14,7 @@ const router = Router();
 router.use((req, res, next) => {
   res.setHeader(
     'Content-Security-Policy',
-    "default-src * 'unsafe-inline' 'unsafe-eval' data: blob:;"
+    "default-src * 'unsafe-inline' 'unsafe-eval' data: blob:;",
   );
   next();
 });
@@ -77,7 +77,10 @@ function buildOpenApiSpec(): any {
             if (modSpec && typeof modSpec === 'object') {
               if (modSpec.paths) baseSpec.paths = { ...baseSpec.paths, ...modSpec.paths };
               if (modSpec.components) {
-                baseSpec.components.schemas = { ...baseSpec.components.schemas, ...modSpec.components?.schemas };
+                baseSpec.components.schemas = {
+                  ...baseSpec.components.schemas,
+                  ...modSpec.components?.schemas,
+                };
                 baseSpec.components.securitySchemes = {
                   ...baseSpec.components.securitySchemes,
                   ...modSpec.components?.securitySchemes,

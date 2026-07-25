@@ -108,7 +108,7 @@ components:
             $ref: '#/components/schemas/ErrorEnvelope'
           example:
             success: false
-            message: Unauthorized: Authentication token is missing or invalid.
+            message: 'Unauthorized: Authentication token is missing or invalid.'
             module: auth
             error:
               code: UNAUTHORIZED
@@ -122,7 +122,7 @@ components:
             $ref: '#/components/schemas/ErrorEnvelope'
           example:
             success: false
-            message: Forbidden: You do not have permission to execute this action.
+            message: 'Forbidden: You do not have permission to execute this action.'
             module: rbac
             error:
               code: FORBIDDEN

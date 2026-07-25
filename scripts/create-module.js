@@ -80,7 +80,12 @@ async function main() {
   const tableName = `${entitySnake}s`;
   const permissionKey = `${group}.${entitySnake}`;
 
-  const moduleDir = path.resolve(process.cwd(), 'src/modules', group, entitySnake.replace(/_/g, '-'));
+  const moduleDir = path.resolve(
+    process.cwd(),
+    'src/modules',
+    group,
+    entitySnake.replace(/_/g, '-'),
+  );
   fs.mkdirSync(moduleDir, { recursive: true });
 
   const schemaDir = path.resolve(process.cwd(), 'src/database/schemas/modules', group);
@@ -89,7 +94,8 @@ async function main() {
   const files = {};
 
   // --- Schema -------------------------------------------------------------
-  files[`${schemaDir}/${entitySnake}.schema.ts`] = `import { pgTable, varchar, text, bigint } from 'drizzle-orm/pg-core';
+  files[`${schemaDir}/${entitySnake}.schema.ts`] =
+    `import { pgTable, varchar, text, bigint } from 'drizzle-orm/pg-core';
 import { idColumn, timestamps, isActiveColumn } from '@/database/schemas/core/_shared.columns.js';
 ${tenantScoped ? "import { tenantsTable } from '@/database/schemas/core/multi-tenancy.schema.js';\n" : ''}
 export const ${entity}sTable = pgTable('${tableName}', {
@@ -131,7 +137,8 @@ export class ${Entity}Service extends BaseService<${Entity}, New${Entity}> {
 `;
 
   // --- Controller -----------------------------------------------------------
-  files[`${moduleDir}/${entitySnake}.controller.ts`] = `import { inject, injectable } from 'tsyringe';
+  files[`${moduleDir}/${entitySnake}.controller.ts`] =
+    `import { inject, injectable } from 'tsyringe';
 import { BaseController } from '@/core/base/base.controller.js';
 import type { ${Entity}, New${Entity} } from '@/database/schemas/modules/${group}/${entitySnake}.schema.js';
 import type { ${Entity}Service } from './${entitySnake}.service.js';
@@ -250,7 +257,8 @@ paths:
       responses:
         '200':
           description: ${Entity} deleted.
-`;  for (const [filePath, content] of Object.entries(files)) {
+`;
+  for (const [filePath, content] of Object.entries(files)) {
     if (fs.existsSync(filePath)) {
       console.log(chalk.yellow(`  skip (exists): ${path.relative(process.cwd(), filePath)}`));
       continue;
@@ -259,8 +267,9 @@ paths:
     console.log(chalk.green(`  created: ${path.relative(process.cwd(), filePath)}`));
   }
 
-  console.log('\n' + chalk.bold('Next steps (manual — decorator DI can\'t be safely code-modded):'));
-  console.log(chalk.cyan(`
+  console.log('\n' + chalk.bold("Next steps (manual — decorator DI can't be safely code-modded):"));
+  console.log(
+    chalk.cyan(`
 1. Export the schema from src/database/schemas/index.ts:
      export * from './modules/${group}/${entitySnake}.schema.js';
 
@@ -285,7 +294,8 @@ paths:
 6. Seed permissions for this module (permissions table): ${permissionKey}:read / :create / :update / :delete
 
 7. Run: npm run db:generate && npm run db:migrate
-`));
+`),
+  );
 }
 
 main().catch((err) => {

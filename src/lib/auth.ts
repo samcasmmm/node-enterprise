@@ -2,9 +2,7 @@ import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { db } from '@/config/db.config.js';
 import env from '@/config/env.config.js';
-import {
-  usersTable, sessionsTable, oauthAccountsTable,
-} from '@/database/schemas/index.js';
+import { usersTable, sessionsTable, oauthAccountsTable } from '@/database/schemas/index.js';
 
 /**
  * Central better-auth instance. All password hashing, session issuance and

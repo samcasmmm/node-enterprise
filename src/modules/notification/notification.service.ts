@@ -3,9 +3,16 @@ import { eq } from 'drizzle-orm';
 import { db } from '@/config/db.config.js';
 import { TOKENS } from '@/core/container/tokens.js';
 import { BaseService } from '@/core/base/base.service.js';
-import { notificationTemplatesTable, type NotificationLog, type NewNotificationLog } from '@/database/schemas/index.js';
+import {
+  notificationTemplatesTable,
+  type NotificationLog,
+  type NewNotificationLog,
+} from '@/database/schemas/index.js';
 import type { NotificationRepository } from './notification.repository.js';
-import type { NotificationChannel, NotificationPayload } from './channels/notification-channel.interface.js';
+import type {
+  NotificationChannel,
+  NotificationPayload,
+} from './channels/notification-channel.interface.js';
 import { EmailChannel } from './channels/email.channel.js';
 import { SmsChannel } from './channels/sms.channel.js';
 import { PushChannel } from './channels/push.channel.js';
@@ -35,12 +42,21 @@ export interface DispatchParams {
 export class NotificationService extends BaseService<NotificationLog, NewNotificationLog> {
   private readonly channels: Map<string, NotificationChannel>;
 
-  constructor(@inject(TOKENS.NotificationRepository) private readonly notificationRepository: NotificationRepository) {
+  constructor(
+    @inject(TOKENS.NotificationRepository)
+    private readonly notificationRepository: NotificationRepository,
+  ) {
     super(notificationRepository, 'Notification');
     this.channels = new Map(
       [
-        new EmailChannel(), new SmsChannel(), new PushChannel(), new WhatsappChannel(),
-        new SlackChannel(), new TeamsChannel(), new DiscordChannel(), new WebhookChannel(),
+        new EmailChannel(),
+        new SmsChannel(),
+        new PushChannel(),
+        new WhatsappChannel(),
+        new SlackChannel(),
+        new TeamsChannel(),
+        new DiscordChannel(),
+        new WebhookChannel(),
       ].map((c) => [c.key, c]),
     );
   }
@@ -65,7 +81,11 @@ export class NotificationService extends BaseService<NotificationLog, NewNotific
     let body = params.body;
     let title = params.title;
     if (params.templateKey) {
-      const template = await this.resolveTemplate(params.tenantId, params.templateKey, params.channel);
+      const template = await this.resolveTemplate(
+        params.tenantId,
+        params.templateKey,
+        params.channel,
+      );
       if (template) {
         body = this.renderTemplate(template.body, params.data);
         title = template.subject ?? title;

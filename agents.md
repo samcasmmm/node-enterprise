@@ -42,15 +42,15 @@ modules/users/
 
 ## 3. Naming Conventions
 
-| Thing | Convention | Example |
-|---|---|---|
-| Files | kebab-case, dot-suffixed by role | `rate-limiter.middleware.ts` |
-| Zod validation & Types | `.dto.ts` | `users.dto.ts` |
-| Classes | PascalCase | `class UserService` |
-| Functions/variables | camelCase | `getUserById` |
-| Constants (module-level) | SCREAMING_SNAKE | `MAX_LOGIN_ATTEMPTS` |
-| DB tables (Drizzle) | snake_case, plural | `user_sessions` |
-| Interfaces/types | PascalCase, no `I` prefix | `UserPayload`, not `IUserPayload` |
+| Thing                    | Convention                       | Example                           |
+| ------------------------ | -------------------------------- | --------------------------------- |
+| Files                    | kebab-case, dot-suffixed by role | `rate-limiter.middleware.ts`      |
+| Zod validation & Types   | `.dto.ts`                        | `users.dto.ts`                    |
+| Classes                  | PascalCase                       | `class UserService`               |
+| Functions/variables      | camelCase                        | `getUserById`                     |
+| Constants (module-level) | SCREAMING_SNAKE                  | `MAX_LOGIN_ATTEMPTS`              |
+| DB tables (Drizzle)      | snake_case, plural               | `user_sessions`                   |
+| Interfaces/types         | PascalCase, no `I` prefix        | `UserPayload`, not `IUserPayload` |
 
 Never PascalCase a filename (`Express.d.ts` → `express.d.ts`). Never mix singular/plural across sibling files in the same folder (`config.constant.ts` + `messages.constants.ts` — pick one, plural, everywhere).
 
@@ -85,17 +85,19 @@ return res.status(201).json({ user });
 ```
 
 Standard success envelope:
+
 ```json
-{ 
-  "success": true, 
-  "message": "User created successfully.", 
-  "module": "users", 
-  "data": { "id": 1, "userName": "john_doe" }, 
-  "timestamp": "22:56:42" 
+{
+  "success": true,
+  "message": "User created successfully.",
+  "module": "users",
+  "data": { "id": 1, "userName": "john_doe" },
+  "timestamp": "22:56:42"
 }
 ```
 
 Standard error envelope (e.g. validation failure):
+
 ```json
 {
   "success": false,
@@ -117,6 +119,7 @@ Standard error envelope (e.g. validation failure):
 ```
 
 HTTP status codes and default messages come from `shared/constants/http.constants.ts` via the unified `HTTP` object (e.g. `HTTP.OK.code`, `HTTP.NOT_FOUND.message`) — never hardcode status numbers or split messages.
+
 - Every API endpoint returning a list of items must support pagination (using `page` and `limit` query parameters validated at the boundary, returning `meta` pagination details in the envelope).
 
 ---
@@ -164,10 +167,7 @@ if (!user) return null;
 
 ```ts
 // ✅ tenant-scoped, isolated query
-const users = await db
-  .select()
-  .from(usersTable)
-  .where(eq(usersTable.tenantId, tenantId));
+const users = await db.select().from(usersTable).where(eq(usersTable.tenantId, tenantId));
 
 // ❌ forbidden — bypasses tenant isolation entirely
 const users = await db.select().from(usersTable);

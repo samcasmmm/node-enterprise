@@ -34,7 +34,7 @@ export class AuthController {
           slug: result.tenant.slug,
           status: result.tenant.status,
         },
-        roles: result.roles.map((r) => ({ id: r.id, name: r.name })),
+        roles: result.roles.map((r) => ({ id: r.id, name: r.name, description: r.description })),
         permissions: result.permissions,
         accessToken: result.tokens.accessToken,
         refreshToken: result.tokens.refreshToken,
@@ -102,7 +102,7 @@ export class AuthController {
           slug: result.tenant!.slug,
           status: result.tenant!.status,
         },
-        roles: result.roles?.map((r) => ({ id: r.id, name: r.name })),
+        roles: result.roles?.map((r) => ({ id: r.id, name: r.name, description: r.description })),
         permissions: result.permissions,
         accessToken: result.tokens!.accessToken,
         refreshToken: result.tokens!.refreshToken,
@@ -112,7 +112,12 @@ export class AuthController {
 
   refresh = asyncHandler(async (req: Request, res: Response) => {
     const tokens = await this.authService.refresh(req.body.refreshToken);
-    res.build.withModule('auth').withStatus(HTTP_STATUS_CODES.OK).withMessage('Token refreshed.').withData(tokens).send();
+    res.build
+      .withModule('auth')
+      .withStatus(HTTP_STATUS_CODES.OK)
+      .withMessage('Token refreshed.')
+      .withData(tokens)
+      .send();
   });
 
   logout = asyncHandler(async (req: Request, res: Response) => {
@@ -123,38 +128,71 @@ export class AuthController {
 
   me = asyncHandler(async (req: Request, res: Response) => {
     if (!req.user) throw new UnauthorizedError();
-    res.build.withModule('auth').withStatus(HTTP_STATUS_CODES.OK).withMessage('Current user.').withData(req.user).send();
+    res.build
+      .withModule('auth')
+      .withStatus(HTTP_STATUS_CODES.OK)
+      .withMessage('Current user.')
+      .withData(req.user)
+      .send();
   });
 
   sendOtp = asyncHandler(async (req: Request, res: Response) => {
-    await this.otpService.send(req.body.destination, req.body.purpose, req.user?.id, req.body.channel);
+    await this.otpService.send(
+      req.body.destination,
+      req.body.purpose,
+      req.user?.id,
+      req.body.channel,
+    );
     res.build.withModule('auth').withStatus(HTTP_STATUS_CODES.OK).withMessage('OTP sent.').send();
   });
 
   verifyOtp = asyncHandler(async (req: Request, res: Response) => {
     await this.otpService.verify(req.body.destination, req.body.purpose, req.body.code);
-    res.build.withModule('auth').withStatus(HTTP_STATUS_CODES.OK).withMessage('OTP verified.').send();
+    res.build
+      .withModule('auth')
+      .withStatus(HTTP_STATUS_CODES.OK)
+      .withMessage('OTP verified.')
+      .send();
   });
 
   enrollMfa = asyncHandler(async (req: Request, res: Response) => {
     if (!req.user) throw new UnauthorizedError();
     const factor = await this.mfaService.enroll(req.user.id, req.body.type);
-    res.build.withModule('auth').withStatus(HTTP_STATUS_CODES.CREATED).withMessage('MFA factor created.').withData(factor).send();
+    res.build
+      .withModule('auth')
+      .withStatus(HTTP_STATUS_CODES.CREATED)
+      .withMessage('MFA factor created.')
+      .withData(factor)
+      .send();
   });
 
   verifyMfa = asyncHandler(async (req: Request, res: Response) => {
     const factor = await this.mfaService.verifyEnrollment(req.body.factorId, req.body.code);
-    res.build.withModule('auth').withStatus(HTTP_STATUS_CODES.OK).withMessage('MFA verified.').withData(factor).send();
+    res.build
+      .withModule('auth')
+      .withStatus(HTTP_STATUS_CODES.OK)
+      .withMessage('MFA verified.')
+      .withData(factor)
+      .send();
   });
 
   listDevices = asyncHandler(async (req: Request, res: Response) => {
     if (!req.user) throw new UnauthorizedError();
     const devices = await this.deviceService.listForUser(req.user.id);
-    res.build.withModule('auth').withStatus(HTTP_STATUS_CODES.OK).withMessage('Devices fetched.').withData(devices).send();
+    res.build
+      .withModule('auth')
+      .withStatus(HTTP_STATUS_CODES.OK)
+      .withMessage('Devices fetched.')
+      .withData(devices)
+      .send();
   });
 
   revokeDevice = asyncHandler(async (req: Request, res: Response) => {
     await this.deviceService.revoke(Number(req.params.id));
-    res.build.withModule('auth').withStatus(HTTP_STATUS_CODES.OK).withMessage('Device revoked.').send();
+    res.build
+      .withModule('auth')
+      .withStatus(HTTP_STATUS_CODES.OK)
+      .withMessage('Device revoked.')
+      .send();
   });
 }

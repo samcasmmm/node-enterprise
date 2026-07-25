@@ -17,7 +17,8 @@ import type { PlanRepository } from './plan.repository.js';
 @injectable()
 export class SubscriptionService extends BaseService<Subscription, any> {
   constructor(
-    @inject(TOKENS.SubscriptionRepository) private readonly subscriptionRepository: SubscriptionRepository,
+    @inject(TOKENS.SubscriptionRepository)
+    private readonly subscriptionRepository: SubscriptionRepository,
     @inject(TOKENS.PlanRepository) private readonly planRepository: PlanRepository,
   ) {
     super(subscriptionRepository, 'Subscription');
@@ -35,7 +36,8 @@ export class SubscriptionService extends BaseService<Subscription, any> {
       planId,
       status: plan.trialDays > 0 ? 'trialing' : 'active',
       currentPeriodEnd: periodEnd,
-      trialEndsAt: plan.trialDays > 0 ? new Date(Date.now() + plan.trialDays * 86400000) : undefined,
+      trialEndsAt:
+        plan.trialDays > 0 ? new Date(Date.now() + plan.trialDays * 86400000) : undefined,
     } as any);
 
     const moduleKeys = (plan.moduleKeys as string[] | null) ?? [];
@@ -55,6 +57,9 @@ export class SubscriptionService extends BaseService<Subscription, any> {
   async cancel(tenantId: number): Promise<void> {
     const subscription = await this.subscriptionRepository.findActiveForTenant(tenantId);
     if (!subscription) throw new NotFoundError('Subscription');
-    await this.subscriptionRepository.updateById(subscription.id, { status: 'cancelled', cancelledAt: new Date() } as any);
+    await this.subscriptionRepository.updateById(subscription.id, {
+      status: 'cancelled',
+      cancelledAt: new Date(),
+    } as any);
   }
 }

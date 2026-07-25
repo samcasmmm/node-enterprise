@@ -16,7 +16,13 @@ router.use(
   buildCrudRouter(controller, {
     permissionKey: 'notification',
     extend: (r) => {
-      r.post('/send', isAuth, requirePermission('notification:create'), validate(dispatchNotificationSchema as any), controller.send);
+      r.post(
+        '/send',
+        isAuth,
+        requirePermission('notification:create'),
+        validate(dispatchNotificationSchema as any),
+        controller.send,
+      );
       r.patch('/:id/read', isAuth, requirePermission('notification:update'), controller.markRead);
     },
   }),

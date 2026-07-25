@@ -15,7 +15,8 @@ export class UserService extends BaseService<User, NewUser> {
   async create(data: NewUser & { password?: string }): Promise<User> {
     const { password, ...rest } = data as any;
     const existing = await this.userRepository.findByEmail(data.tenantId!, data.email);
-    if (existing) throw new ValidationError('A user with this email already exists in this tenant.');
+    if (existing)
+      throw new ValidationError('A user with this email already exists in this tenant.');
 
     const passwordHash = password ? await bcrypt.hash(password, 12) : undefined;
     return this.userRepository.create({ ...rest, passwordHash });

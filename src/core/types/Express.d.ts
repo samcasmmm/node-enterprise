@@ -1,4 +1,4 @@
-import ResponseBuilder from "../response/response.builder.js";
+import ResponseBuilder from '../response/response.builder.js';
 
 declare global {
   namespace Express {
@@ -26,4 +26,4 @@ declare global {
   }
 }
 
-export { };
+export {};

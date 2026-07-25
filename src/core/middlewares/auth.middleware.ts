@@ -11,11 +11,7 @@ export interface DecodedToken {
   branchId?: number;
 }
 
-export const isAuth = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<void> => {
+export const isAuth = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {

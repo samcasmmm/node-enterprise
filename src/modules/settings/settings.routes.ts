@@ -11,6 +11,12 @@ const router: Router = Router();
 const controller = container.resolve<SettingsController>(TOKENS.SettingsController as any);
 
 router.get('/:category', isAuth, requirePermission('settings:read'), controller.getCategory);
-router.put('/:category', isAuth, requirePermission('settings:update'), validate(setCategorySchema as any), controller.setCategory);
+router.put(
+  '/:category',
+  isAuth,
+  requirePermission('settings:update'),
+  validate(setCategorySchema as any),
+  controller.setCategory,
+);
 
 export default router;

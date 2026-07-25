@@ -2,8 +2,14 @@ import { injectable } from 'tsyringe';
 import { eq, and } from 'drizzle-orm';
 import { db } from '@/config/db.config.js';
 import {
-  permissionsTable, rolePermissionsTable, userRolesTable, rolesTable,
-  groupRolesTable, groupMembersTable, delegationsTable, temporaryAccessTable,
+  permissionsTable,
+  rolePermissionsTable,
+  userRolesTable,
+  rolesTable,
+  groupRolesTable,
+  groupMembersTable,
+  delegationsTable,
+  temporaryAccessTable,
   type Permission,
 } from '@/database/schemas/index.js';
 import { BaseRepository } from '@/core/base/base.repository.js';
@@ -39,9 +45,7 @@ export class PermissionRepository extends BaseRepository<typeof permissionsTable
 
     const active = new Set<string>();
     [...directRolePerms, ...groupRolePerms].forEach((r) => active.add(r.key));
-    temporaryGrants
-      .filter((g: any) => !g.revokedAt)
-      .forEach((g) => active.add(g.key));
+    temporaryGrants.filter((g: any) => !g.revokedAt).forEach((g) => active.add(g.key));
 
     return active;
   }
@@ -49,7 +53,10 @@ export class PermissionRepository extends BaseRepository<typeof permissionsTable
   /** Permission keys the user has access to via an active delegation from another user. */
   async getDelegatedPermissionKeys(userId: number): Promise<Set<string>> {
     const now = new Date();
-    const delegations = await db.select().from(delegationsTable).where(eq(delegationsTable.delegateUserId, userId));
+    const delegations = await db
+      .select()
+      .from(delegationsTable)
+      .where(eq(delegationsTable.delegateUserId, userId));
     const active = delegations.filter((d) => d.isActive && d.startsAt <= now && d.endsAt >= now);
 
     const keys = new Set<string>();

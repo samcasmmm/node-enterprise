@@ -9,13 +9,25 @@ import { issueTokens, verifyRefreshToken, type TokenPair } from '@/core/utils/jw
 import type { UserRepository } from '@/modules/user/user.repository.js';
 import type { TenantRepository } from '@/modules/tenant/tenant.repository.js';
 import type {
-  SessionRepository, OtpRepository, MfaRepository, DeviceRepository, PasswordPolicyRepository,
+  SessionRepository,
+  OtpRepository,
+  MfaRepository,
+  DeviceRepository,
+  PasswordPolicyRepository,
 } from './auth.repository.js';
 import type { AuditLogService } from '@/modules/audit/audit-log.service.js';
 import type { NotificationService } from '@/modules/notification/notification.service.js';
+import { TENANT_ROLES } from '@/shared/constants/roles.constants.js';
 import {
-  tenantsTable, usersTable, rolesTable, userRolesTable, organizationsTable, departmentsTable,
-  type User, type Tenant, type Role,
+  tenantsTable,
+  usersTable,
+  rolesTable,
+  userRolesTable,
+  organizationsTable,
+  departmentsTable,
+  type User,
+  type Tenant,
+  type Role,
 } from '@/database/schemas/index.js';
 
 export interface RegisterTenantParams {
@@ -50,18 +62,24 @@ export class AuthService {
     @inject(TOKENS.UserRepository) private readonly userRepository: UserRepository,
     @inject(TOKENS.TenantRepository) private readonly tenantRepository: TenantRepository,
     @inject(TOKENS.SessionRepository) private readonly sessionRepository: SessionRepository,
-    @inject(TOKENS.PasswordPolicyRepository) private readonly passwordPolicyRepository: PasswordPolicyRepository,
+    @inject(TOKENS.PasswordPolicyRepository)
+    private readonly passwordPolicyRepository: PasswordPolicyRepository,
     @inject(TOKENS.AuditLogService) private readonly auditLogService: AuditLogService,
   ) {}
 
   private async assertPasswordPolicy(tenantId: number, password: string): Promise<void> {
     const policy = await this.passwordPolicyRepository.findForTenant(tenantId);
     const minLength = policy?.minLength ?? 8;
-    if (password.length < minLength) throw new ValidationError(`Password must be at least ${minLength} characters.`);
-    if (policy?.requireUppercase && !/[A-Z]/.test(password)) throw new ValidationError('Password must contain an uppercase letter.');
-    if (policy?.requireLowercase && !/[a-z]/.test(password)) throw new ValidationError('Password must contain a lowercase letter.');
-    if (policy?.requireNumber && !/[0-9]/.test(password)) throw new ValidationError('Password must contain a number.');
-    if (policy?.requireSymbol && !/[^A-Za-z0-9]/.test(password)) throw new ValidationError('Password must contain a symbol.');
+    if (password.length < minLength)
+      throw new ValidationError(`Password must be at least ${minLength} characters.`);
+    if (policy?.requireUppercase && !/[A-Z]/.test(password))
+      throw new ValidationError('Password must contain an uppercase letter.');
+    if (policy?.requireLowercase && !/[a-z]/.test(password))
+      throw new ValidationError('Password must contain a lowercase letter.');
+    if (policy?.requireNumber && !/[0-9]/.test(password))
+      throw new ValidationError('Password must contain a number.');
+    if (policy?.requireSymbol && !/[^A-Za-z0-9]/.test(password))
+      throw new ValidationError('Password must contain a symbol.');
   }
 
   /**
@@ -78,11 +96,12 @@ export class AuthService {
     const existing = await this.userRepository.findFirstByEmail(params.email);
     if (existing) throw new ValidationError('A user with this email address already exists.');
 
-    const slug = params.companyName
-      .toLowerCase()
-      .trim()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/(^-|-$)/g, '') || `tenant-${Date.now()}`;
+    const slug =
+      params.companyName
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '') || `tenant-${Date.now()}`;
 
     const passwordHash = await bcrypt.hash(params.password, 12);
 
@@ -117,25 +136,26 @@ export class AuthService {
         } as any)
         .returning();
 
-      // 3. Seed Default Tenant Roles (SUPER_ADMIN / Owner, Admin, Manager, Employee)
-      const [ownerRole] = await tx
+      // 3. Seed All Standard Tenant Roles
+      const seededRoles = await tx
         .insert(rolesTable)
-        .values({
-          tenantId: tenant.id,
-          name: 'SUPER_ADMIN',
-          description: 'Tenant Owner & Super Administrator',
-          isSystem: true,
-          isActive: true,
-        } as any)
+        .values(
+          TENANT_ROLES.map(
+            (r) =>
+              ({
+                tenantId: tenant.id,
+                name: r.name,
+                description: r.description,
+                isSystem: r.isSystem,
+                isActive: true,
+              }) as any,
+          ),
+        )
         .returning();
 
-      await tx.insert(rolesTable).values([
-        { tenantId: tenant.id, name: 'Admin', description: 'Administrator', isSystem: true, isActive: true },
-        { tenantId: tenant.id, name: 'Manager', description: 'Department Manager', isSystem: false, isActive: true },
-        { tenantId: tenant.id, name: 'Employee', description: 'Standard Employee', isSystem: false, isActive: true },
-      ] as any);
+      const ownerRole = seededRoles.find((r) => r.name === 'OWNER') ?? seededRoles[0];
 
-      // 4. Assign SUPER_ADMIN role to user
+      // 4. Assign OWNER role to the registering user
       await tx.insert(userRolesTable).values({
         userId: user.id,
         roleId: ownerRole.id,
@@ -152,10 +172,34 @@ export class AuthService {
         .returning();
 
       await tx.insert(departmentsTable).values([
-        { tenantId: tenant.id, organizationId: org.id, name: 'Executive', code: 'EXEC', isActive: true },
-        { tenantId: tenant.id, organizationId: org.id, name: 'Human Resources', code: 'HR', isActive: true },
-        { tenantId: tenant.id, organizationId: org.id, name: 'Finance & Accounting', code: 'FIN', isActive: true },
-        { tenantId: tenant.id, organizationId: org.id, name: 'Information Technology', code: 'IT', isActive: true },
+        {
+          tenantId: tenant.id,
+          organizationId: org.id,
+          name: 'Executive',
+          code: 'EXEC',
+          isActive: true,
+        },
+        {
+          tenantId: tenant.id,
+          organizationId: org.id,
+          name: 'Human Resources',
+          code: 'HR',
+          isActive: true,
+        },
+        {
+          tenantId: tenant.id,
+          organizationId: org.id,
+          name: 'Finance & Accounting',
+          code: 'FIN',
+          isActive: true,
+        },
+        {
+          tenantId: tenant.id,
+          organizationId: org.id,
+          name: 'Information Technology',
+          code: 'IT',
+          isActive: true,
+        },
       ] as any);
 
       // 6. Issue Tokens & Session
@@ -187,7 +231,12 @@ export class AuthService {
       passwordHash,
     } as any);
 
-    await this.auditLogService.recordActivity(params.tenantId, user.id, `${user.name} registered.`, 'auth');
+    await this.auditLogService.recordActivity(
+      params.tenantId,
+      user.id,
+      `${user.name} registered.`,
+      'auth',
+    );
     return user;
   }
 
@@ -231,7 +280,8 @@ export class AuthService {
 
     if (params.tenantId) {
       targetUser = validUsers.find((u) => u.tenantId === params.tenantId);
-      if (!targetUser) throw new UnauthorizedError('Invalid tenant or credentials for selected tenant.');
+      if (!targetUser)
+        throw new UnauthorizedError('Invalid tenant or credentials for selected tenant.');
     } else if (validUsers.length === 1) {
       targetUser = validUsers[0];
     } else {
@@ -290,14 +340,22 @@ export class AuthService {
   }
 
   /** Used after an OAuth provider (Google/Microsoft/Apple) resolves an identity via better-auth. */
-  async loginWithUserId(userId: number, ipAddress?: string, userAgent?: string): Promise<{ user: User; tokens: TokenPair }> {
+  async loginWithUserId(
+    userId: number,
+    ipAddress?: string,
+    userAgent?: string,
+  ): Promise<{ user: User; tokens: TokenPair }> {
     const user = await this.userRepository.findById(userId);
     if (!user) throw new UnauthorizedError('User not found.');
     const tokens = await this.issueSession(user, ipAddress, userAgent);
     return { user, tokens };
   }
 
-  private async issueSession(user: User, ipAddress?: string, userAgent?: string): Promise<TokenPair> {
+  private async issueSession(
+    user: User,
+    ipAddress?: string,
+    userAgent?: string,
+  ): Promise<TokenPair> {
     const tokens = issueTokens({
       userId: user.id,
       userName: user.userName ?? user.name,
@@ -345,7 +403,12 @@ export class OtpService {
     @inject(TOKENS.NotificationService) private readonly notificationService: NotificationService,
   ) {}
 
-  async send(destination: string, purpose: string, userId?: number, channel: 'email' | 'sms' = 'email'): Promise<void> {
+  async send(
+    destination: string,
+    purpose: string,
+    userId?: number,
+    channel: 'email' | 'sms' = 'email',
+  ): Promise<void> {
     const code = String(crypto.randomInt(100000, 999999));
     const codeHash = await bcrypt.hash(code, 10);
 
@@ -369,7 +432,8 @@ export class OtpService {
   async verify(destination: string, purpose: string, code: string): Promise<boolean> {
     const otp = await this.otpRepository.findActive(destination, purpose);
     if (!otp) throw new ValidationError('OTP has expired or was not requested.');
-    if (otp.attempts >= MAX_ATTEMPTS) throw new ValidationError('Too many attempts. Request a new OTP.');
+    if (otp.attempts >= MAX_ATTEMPTS)
+      throw new ValidationError('Too many attempts. Request a new OTP.');
 
     const isValid = await bcrypt.compare(code, otp.codeHash);
     if (!isValid) {
@@ -420,9 +484,15 @@ export class MfaService {
 /** Device Management — track, trust, and revoke devices a user has logged in from. */
 @injectable()
 export class DeviceService {
-  constructor(@inject(TOKENS.DeviceRepository) private readonly deviceRepository: DeviceRepository) {}
+  constructor(
+    @inject(TOKENS.DeviceRepository) private readonly deviceRepository: DeviceRepository,
+  ) {}
 
-  async registerOrTouch(userId: number, fingerprint: string, meta: { name?: string; platform?: string; ipAddress?: string }) {
+  async registerOrTouch(
+    userId: number,
+    fingerprint: string,
+    meta: { name?: string; platform?: string; ipAddress?: string },
+  ) {
     const existing = await this.deviceRepository.findByFingerprint(userId, fingerprint);
     if (existing) {
       return this.deviceRepository.updateById(existing.id, {

@@ -3,7 +3,11 @@ import { auditLogsTable, type AuditLog, type NewAuditLog } from '@/database/sche
 import { BaseRepository } from '@/core/base/base.repository.js';
 
 @injectable()
-export class AuditLogRepository extends BaseRepository<typeof auditLogsTable, AuditLog, NewAuditLog> {
+export class AuditLogRepository extends BaseRepository<
+  typeof auditLogsTable,
+  AuditLog,
+  NewAuditLog
+> {
   constructor() {
     super(auditLogsTable);
   }

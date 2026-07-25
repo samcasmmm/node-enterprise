@@ -15,7 +15,11 @@ export class RoleController extends BaseController<Role, NewRole> {
 
   setPermissions = asyncHandler(async (req: Request, res: Response) => {
     await this.roleService.setPermissions(Number(req.params.id), req.body.permissionIds ?? []);
-    res.build.withModule('role').withStatus(HTTP_STATUS_CODES.OK).withMessage('Permissions updated.').send();
+    res.build
+      .withModule('role')
+      .withStatus(HTTP_STATUS_CODES.OK)
+      .withMessage('Permissions updated.')
+      .send();
   });
 
   assignToUser = asyncHandler(async (req: Request, res: Response) => {
@@ -23,6 +27,10 @@ export class RoleController extends BaseController<Role, NewRole> {
       branchId: req.body.branchId,
       departmentId: req.body.departmentId,
     });
-    res.build.withModule('role').withStatus(HTTP_STATUS_CODES.CREATED).withMessage('Role assigned.').send();
+    res.build
+      .withModule('role')
+      .withStatus(HTTP_STATUS_CODES.CREATED)
+      .withMessage('Role assigned.')
+      .send();
   });
 }

@@ -1,6 +1,21 @@
-import { pgTable, varchar,  boolean, text, timestamp, uniqueIndex, index, primaryKey, bigint } from 'drizzle-orm/pg-core';
+import {
+  pgTable,
+  varchar,
+  boolean,
+  text,
+  timestamp,
+  uniqueIndex,
+  index,
+  primaryKey,
+  bigint,
+} from 'drizzle-orm/pg-core';
 import { idColumn, timestamps, isActiveColumn } from './_shared.columns.js';
-import { tenantsTable, organizationsTable, branchesTable, departmentsTable } from './multi-tenancy.schema.js';
+import {
+  tenantsTable,
+  organizationsTable,
+  branchesTable,
+  departmentsTable,
+} from './multi-tenancy.schema.js';
 
 /**
  * Users — one identity row per human who can log in. Every module-specific
@@ -18,9 +33,16 @@ export const usersTable = pgTable(
   'users',
   {
     id: idColumn(),
-    tenantId: bigint('tenant_id', { mode: 'number' }).notNull().references(() => tenantsTable.id, { onDelete: 'cascade' }),
-    organizationId: bigint('organization_id', { mode: 'number' }).references(() => organizationsTable.id, { onDelete: 'set null' }),
-    branchId: bigint('branch_id', { mode: 'number' }).references(() => branchesTable.id, { onDelete: 'set null' }),
+    tenantId: bigint('tenant_id', { mode: 'number' })
+      .notNull()
+      .references(() => tenantsTable.id, { onDelete: 'cascade' }),
+    organizationId: bigint('organization_id', { mode: 'number' }).references(
+      () => organizationsTable.id,
+      { onDelete: 'set null' },
+    ),
+    branchId: bigint('branch_id', { mode: 'number' }).references(() => branchesTable.id, {
+      onDelete: 'set null',
+    }),
 
     // better-auth compatible core identity fields
     name: varchar('name', { length: 150 }).notNull(),
@@ -48,11 +70,22 @@ export const employeesTable = pgTable(
   'employees',
   {
     id: idColumn(),
-    userId: bigint('user_id', { mode: 'number' }).notNull().references(() => usersTable.id, { onDelete: 'cascade' }),
-    tenantId: bigint('tenant_id', { mode: 'number' }).notNull().references(() => tenantsTable.id, { onDelete: 'cascade' }),
-    organizationId: bigint('organization_id', { mode: 'number' }).notNull().references(() => organizationsTable.id, { onDelete: 'cascade' }),
-    branchId: bigint('branch_id', { mode: 'number' }).references(() => branchesTable.id, { onDelete: 'set null' }),
-    departmentId: bigint('department_id', { mode: 'number' }).references(() => departmentsTable.id, { onDelete: 'set null' }),
+    userId: bigint('user_id', { mode: 'number' })
+      .notNull()
+      .references(() => usersTable.id, { onDelete: 'cascade' }),
+    tenantId: bigint('tenant_id', { mode: 'number' })
+      .notNull()
+      .references(() => tenantsTable.id, { onDelete: 'cascade' }),
+    organizationId: bigint('organization_id', { mode: 'number' })
+      .notNull()
+      .references(() => organizationsTable.id, { onDelete: 'cascade' }),
+    branchId: bigint('branch_id', { mode: 'number' }).references(() => branchesTable.id, {
+      onDelete: 'set null',
+    }),
+    departmentId: bigint('department_id', { mode: 'number' }).references(
+      () => departmentsTable.id,
+      { onDelete: 'set null' },
+    ),
     employeeCode: varchar('employee_code', { length: 30 }),
     designation: varchar('designation', { length: 100 }),
     reportingManagerId: bigint('reporting_manager_id', { mode: 'number' }),
@@ -72,15 +105,24 @@ export const contactsTable = pgTable(
   'contacts',
   {
     id: idColumn(),
-    userId: bigint('user_id', { mode: 'number' }).references(() => usersTable.id, { onDelete: 'set null' }),
-    tenantId: bigint('tenant_id', { mode: 'number' }).notNull().references(() => tenantsTable.id, { onDelete: 'cascade' }),
-    organizationId: bigint('organization_id', { mode: 'number' }).references(() => organizationsTable.id, { onDelete: 'set null' }),
+    userId: bigint('user_id', { mode: 'number' }).references(() => usersTable.id, {
+      onDelete: 'set null',
+    }),
+    tenantId: bigint('tenant_id', { mode: 'number' })
+      .notNull()
+      .references(() => tenantsTable.id, { onDelete: 'cascade' }),
+    organizationId: bigint('organization_id', { mode: 'number' }).references(
+      () => organizationsTable.id,
+      { onDelete: 'set null' },
+    ),
     firstName: varchar('first_name', { length: 100 }).notNull(),
     lastName: varchar('last_name', { length: 100 }),
     email: varchar('email', { length: 255 }),
     phone: varchar('phone', { length: 30 }),
     contactType: varchar('contact_type', { length: 30 }).default('lead'), // lead | customer | vendor | partner
-    ownerUserId: bigint('owner_user_id', { mode: 'number' }).references(() => usersTable.id, { onDelete: 'set null' }),
+    ownerUserId: bigint('owner_user_id', { mode: 'number' }).references(() => usersTable.id, {
+      onDelete: 'set null',
+    }),
     isActive: isActiveColumn(),
     ...timestamps,
   },
@@ -92,11 +134,18 @@ export const teamsTable = pgTable(
   'teams',
   {
     id: idColumn(),
-    tenantId: bigint('tenant_id', { mode: 'number' }).notNull().references(() => tenantsTable.id, { onDelete: 'cascade' }),
-    organizationId: bigint('organization_id', { mode: 'number' }).references(() => organizationsTable.id, { onDelete: 'set null' }),
+    tenantId: bigint('tenant_id', { mode: 'number' })
+      .notNull()
+      .references(() => tenantsTable.id, { onDelete: 'cascade' }),
+    organizationId: bigint('organization_id', { mode: 'number' }).references(
+      () => organizationsTable.id,
+      { onDelete: 'set null' },
+    ),
     name: varchar('name', { length: 150 }).notNull(),
     description: text('description'),
-    leadUserId: bigint('lead_user_id', { mode: 'number' }).references(() => usersTable.id, { onDelete: 'set null' }),
+    leadUserId: bigint('lead_user_id', { mode: 'number' }).references(() => usersTable.id, {
+      onDelete: 'set null',
+    }),
     isActive: isActiveColumn(),
     ...timestamps,
   },
@@ -106,8 +155,12 @@ export const teamsTable = pgTable(
 export const teamMembersTable = pgTable(
   'team_members',
   {
-    teamId: bigint('team_id', { mode: 'number' }).notNull().references(() => teamsTable.id, { onDelete: 'cascade' }),
-    userId: bigint('user_id', { mode: 'number' }).notNull().references(() => usersTable.id, { onDelete: 'cascade' }),
+    teamId: bigint('team_id', { mode: 'number' })
+      .notNull()
+      .references(() => teamsTable.id, { onDelete: 'cascade' }),
+    userId: bigint('user_id', { mode: 'number' })
+      .notNull()
+      .references(() => usersTable.id, { onDelete: 'cascade' }),
     joinedAt: timestamp('joined_at', { withTimezone: true }).defaultNow().notNull(),
   },
   (t) => ({ pk: primaryKey({ columns: [t.teamId, t.userId] }) }),
@@ -118,7 +171,9 @@ export const groupsTable = pgTable(
   'groups',
   {
     id: idColumn(),
-    tenantId: bigint('tenant_id', { mode: 'number' }).notNull().references(() => tenantsTable.id, { onDelete: 'cascade' }),
+    tenantId: bigint('tenant_id', { mode: 'number' })
+      .notNull()
+      .references(() => tenantsTable.id, { onDelete: 'cascade' }),
     name: varchar('name', { length: 150 }).notNull(),
     description: text('description'),
     isActive: isActiveColumn(),
@@ -130,8 +185,12 @@ export const groupsTable = pgTable(
 export const groupMembersTable = pgTable(
   'group_members',
   {
-    groupId: bigint('group_id', { mode: 'number' }).notNull().references(() => groupsTable.id, { onDelete: 'cascade' }),
-    userId: bigint('user_id', { mode: 'number' }).notNull().references(() => usersTable.id, { onDelete: 'cascade' }),
+    groupId: bigint('group_id', { mode: 'number' })
+      .notNull()
+      .references(() => groupsTable.id, { onDelete: 'cascade' }),
+    userId: bigint('user_id', { mode: 'number' })
+      .notNull()
+      .references(() => usersTable.id, { onDelete: 'cascade' }),
     joinedAt: timestamp('joined_at', { withTimezone: true }).defaultNow().notNull(),
   },
   (t) => ({ pk: primaryKey({ columns: [t.groupId, t.userId] }) }),

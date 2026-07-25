@@ -7,7 +7,9 @@ import type { TenantRepository } from './tenant.repository.js';
 
 @injectable()
 export class TenantService extends BaseService<Tenant, NewTenant> {
-  constructor(@inject(TOKENS.TenantRepository) private readonly tenantRepository: TenantRepository) {
+  constructor(
+    @inject(TOKENS.TenantRepository) private readonly tenantRepository: TenantRepository,
+  ) {
     super(tenantRepository, 'Tenant');
   }
 

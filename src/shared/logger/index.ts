@@ -2,8 +2,7 @@ import chalk from 'chalk';
 
 type LogLevel = 'success' | 'info' | 'warn' | 'error';
 
-const getTimestamp = (): string =>
-  chalk.gray(new Date().toLocaleTimeString());
+const getTimestamp = (): string => chalk.gray(new Date().toLocaleTimeString());
 
 const formatLevelTag = (level: LogLevel): string => {
   switch (level) {
@@ -18,11 +17,7 @@ const formatLevelTag = (level: LogLevel): string => {
   }
 };
 
-const writeLog = (
-  level: LogLevel,
-  message: string,
-  meta?: unknown
-) => {
+const writeLog = (level: LogLevel, message: string, meta?: unknown) => {
   const output = `${getTimestamp()} ${formatLevelTag(level)} ${message}`;
 
   if (level === 'error') {
@@ -33,26 +28,20 @@ const writeLog = (
 };
 
 export const logger = {
-  success: (message: string, meta?: unknown) =>
-    writeLog('success', message, meta),
+  success: (message: string, meta?: unknown) => writeLog('success', message, meta),
 
-  info: (message: string, meta?: unknown) =>
-    writeLog('info', message, meta),
+  info: (message: string, meta?: unknown) => writeLog('info', message, meta),
 
-  warn: (message: string, meta?: unknown) =>
-    writeLog('warn', message, meta),
+  warn: (message: string, meta?: unknown) => writeLog('warn', message, meta),
 
-  error: (message: string, meta?: unknown) =>
-    writeLog('error', message, meta),
+  error: (message: string, meta?: unknown) => writeLog('error', message, meta),
 
   banner: (title: string) => {
     const padding = 6;
     const width = title.length + padding;
 
     const top = `╔${'═'.repeat(width)}╗`;
-    const middle = `║${title
-      .padStart((width + title.length) / 2)
-      .padEnd(width)}║`;
+    const middle = `║${title.padStart((width + title.length) / 2).padEnd(width)}║`;
     const bottom = `╚${'═'.repeat(width)}╝`;
 
     console.log(chalk.bold.cyan(top));

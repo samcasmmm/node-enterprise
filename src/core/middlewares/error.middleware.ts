@@ -63,17 +63,11 @@ class ErrorFactory {
     };
 
     const ErrorClass = errorMap[type];
-    return ErrorClass
-      ? new ErrorClass(...args)
-      : new InternalServerError('Unknown error type');
+    return ErrorClass ? new ErrorClass(...args) : new InternalServerError('Unknown error type');
   }
 }
 
-export const notFoundMiddleware = (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
+export const notFoundMiddleware = (req: Request, res: Response, next: NextFunction) => {
   const error = new NotFoundError(`${req.originalUrl}`);
   next(error);
 };
@@ -82,7 +76,7 @@ export const errorHandlerMiddleware = (
   err: any,
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   let statusCode = 500;
   let errorCode = 'INTERNAL_ERROR';

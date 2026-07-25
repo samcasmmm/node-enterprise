@@ -5,8 +5,13 @@ import { isAuth } from '@/core/middlewares/auth.middleware.js';
 import { validate } from '@/core/middlewares/validate.middleware.js';
 import { tenantResolver } from '@/core/middlewares/tenant.middleware.js';
 import {
-  registerSchema, loginSchema, refreshSchema, sendOtpSchema, verifyOtpSchema,
-  mfaEnrollSchema, mfaVerifySchema,
+  registerSchema,
+  loginSchema,
+  refreshSchema,
+  sendOtpSchema,
+  verifyOtpSchema,
+  mfaEnrollSchema,
+  mfaVerifySchema,
 } from './auth.validation.js';
 import type { AuthController } from './auth.controller.js';
 
@@ -17,13 +22,28 @@ const controller = container.resolve<AuthController>(TOKENS.AuthController as an
  * Onboarding: Auto-provisions a new Tenant and Super Admin / Owner User
  * in a single atomic database transaction.
  */
-router.post('/register-tenant', tenantResolver({ required: false }), validate(registerSchema as any), controller.registerTenant);
+router.post(
+  '/register-tenant',
+  tenantResolver({ required: false }),
+  validate(registerSchema as any),
+  controller.registerTenant,
+);
 
 /** Register an additional user under an existing tenant */
-router.post('/register', tenantResolver({ required: false }), validate(registerSchema as any), controller.register);
+router.post(
+  '/register',
+  tenantResolver({ required: false }),
+  validate(registerSchema as any),
+  controller.register,
+);
 
 /** Login with Email & Password (no Tenant ID required) */
-router.post('/login', tenantResolver({ required: false }), validate(loginSchema as any), controller.login);
+router.post(
+  '/login',
+  tenantResolver({ required: false }),
+  validate(loginSchema as any),
+  controller.login,
+);
 
 router.post('/refresh', validate(refreshSchema as any), controller.refresh);
 router.post('/otp/send', validate(sendOtpSchema as any), controller.sendOtp);

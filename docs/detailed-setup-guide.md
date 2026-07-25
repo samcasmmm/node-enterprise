@@ -73,7 +73,9 @@ export const userSessions = pgTable(
     token: text('token').notNull().unique(), // <-- ADD THIS for Better-Auth session token tracking
     // ... your existing columns:
     tenantId: bigint('tenant_id', { mode: 'bigint' }).references((): AnyPgColumn => tenants.id),
-    membershipId: bigint('membership_id', { mode: 'bigint' }).references((): AnyPgColumn => memberships.id),
+    membershipId: bigint('membership_id', { mode: 'bigint' }).references(
+      (): AnyPgColumn => memberships.id,
+    ),
     deviceId: bigint('device_id', { mode: 'bigint' }).references(() => devices.id),
     refreshTokenHash: text('refresh_token_hash').notNull(),
     accessTokenJti: varchar('access_token_jti', { length: 64 }),
@@ -221,7 +223,10 @@ export async function requireTenantAuth(req: Request, res: Response, next: NextF
     const tenantId = BigInt(tenantIdHeader);
 
     const member = await db.query.memberships.findFirst({
-      where: and(eq(memberships.userId, BigInt(session.user.id)), eq(memberships.tenantId, tenantId)),
+      where: and(
+        eq(memberships.userId, BigInt(session.user.id)),
+        eq(memberships.tenantId, tenantId),
+      ),
     });
 
     if (!member) {

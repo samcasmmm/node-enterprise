@@ -2,9 +2,16 @@ import 'reflect-metadata';
 import { db } from '@/config/db.config.js';
 import { logger } from '@/shared/logger/index.js';
 import {
-  tenantsTable, organizationsTable, usersTable,
-  permissionsTable, rolesTable, rolePermissionsTable, userRolesTable,
-  passwordPoliciesTable, modulesCatalogTable, plansTable,
+  tenantsTable,
+  organizationsTable,
+  usersTable,
+  permissionsTable,
+  rolesTable,
+  rolePermissionsTable,
+  userRolesTable,
+  passwordPoliciesTable,
+  modulesCatalogTable,
+  plansTable,
 } from '@/database/schemas/index.js';
 import bcrypt from 'bcrypt';
 
@@ -17,13 +24,25 @@ import bcrypt from 'bcrypt';
  * Run with: npx tsx src/database/seed/index.ts
  */
 
-const CORE_MODULES = ['tenant', 'user', 'auth', 'rbac', 'settings', 'subscription', 'audit', 'notification'];
+const CORE_MODULES = [
+  'tenant',
+  'user',
+  'auth',
+  'rbac',
+  'settings',
+  'subscription',
+  'audit',
+  'notification',
+];
 const ACTIONS = ['read', 'create', 'update', 'delete'];
 
 async function seed() {
   logger.info('Seeding: modules catalog...');
   for (const key of CORE_MODULES) {
-    await db.insert(modulesCatalogTable).values({ key, name: key, isCore: true }).onConflictDoNothing();
+    await db
+      .insert(modulesCatalogTable)
+      .values({ key, name: key, isCore: true })
+      .onConflictDoNothing();
   }
 
   logger.info('Seeding: tenant + organization...');
@@ -41,7 +60,10 @@ async function seed() {
     .returning();
 
   logger.info('Seeding: password policy...');
-  await db.insert(passwordPoliciesTable).values({ tenantId: activeTenant.id }).onConflictDoNothing();
+  await db
+    .insert(passwordPoliciesTable)
+    .values({ tenantId: activeTenant.id })
+    .onConflictDoNothing();
 
   logger.info('Seeding: permissions (module:action for every core module)...');
   const permissionRows = CORE_MODULES.flatMap((moduleKey) =>
@@ -70,7 +92,10 @@ async function seed() {
     .returning();
 
   const wildcard = wildcardPermission ?? (await db.select().from(permissionsTable).limit(1))[0];
-  await db.insert(rolePermissionsTable).values({ roleId: superAdminRole.id, permissionId: wildcard.id }).onConflictDoNothing();
+  await db
+    .insert(rolePermissionsTable)
+    .values({ roleId: superAdminRole.id, permissionId: wildcard.id })
+    .onConflictDoNothing();
 
   logger.info('Seeding: default subscription plan...');
   await db
