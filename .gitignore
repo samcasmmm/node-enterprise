@@ -61,4 +61,4 @@ coverage/
 
 # Drizzle Migrations
 src/database/migrations/
-public/
+public/tsconfig.tsbuildinfo
