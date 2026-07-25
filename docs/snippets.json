@@ -1,0 +1,71 @@
+{
+  "ResponseBuilder Success": {
+    "prefix": "rbs",
+    "body": [
+      "return res.build",
+      "  .withStatus(${1:200})",
+      "  .success()",
+      "  .withModule('${2:module}')",
+      "  .withMessage('${3:Operation successful}')",
+      "  .withData(${4:data})",
+      "  .send();"
+    ],
+    "description": "Success response using res.build"
+  },
+
+  "ResponseBuilder Error": {
+    "prefix": "rbe",
+    "body": [
+      "return res.build",
+      "  .withStatus(${1:400})",
+      "  .fail()",
+      "  .withModule('${2:module}')",
+      "  .withMessage('${3:Operation failed}')",
+      "  .withError('${4:ERROR_CODE}', ${5:error})",
+      "  .send();"
+    ],
+    "description": "Error response using res.build"
+  },
+
+  "Throw ValidationError": {
+    "prefix": "tev",
+    "body": ["throw new ValidationError('${1:Validation failed}', ${2:errors});"],
+    "description": "Throw ValidationError"
+  },
+
+  "Throw NotFoundError": {
+    "prefix": "tenf",
+    "body": ["throw new NotFoundError('${1:Resource}');"],
+    "description": "Throw NotFoundError"
+  },
+
+  "Throw UnauthorizedError": {
+    "prefix": "teua",
+    "body": ["throw new UnauthorizedError('${1:Authentication required}');"],
+    "description": "Throw UnauthorizedError"
+  },
+
+  "Throw InternalServerError": {
+    "prefix": "teis",
+    "body": ["throw new InternalServerError('${1:Internal server error}');"],
+    "description": "Throw InternalServerError"
+  },
+
+  "Throw HttpError": {
+    "prefix": "teh",
+    "body": ["throw new HttpError(${1:400}, '${2:Bad Request}', '${3:HTTP_ERROR}');"],
+    "description": "Throw HttpError"
+  },
+
+  "Throw ErrorFactory": {
+    "prefix": "tef",
+    "body": ["throw ErrorFactory.create('${1|validation,notFound,unauthorized,internal|}'${2});"],
+    "description": "Throw error using ErrorFactory"
+  },
+
+  "ValidationError from Zod": {
+    "prefix": "zerr",
+    "body": ["if (!result.success) {", "  throw ValidationError.fromZod(result.error);", "}"],
+    "description": "Convert ZodError to ValidationError"
+  }
+}
