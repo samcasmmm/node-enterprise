@@ -11,12 +11,37 @@ paths:
       summary: List all roles (paginated)
       security:
         - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PageQuery'
+        - $ref: '#/components/parameters/LimitQuery'
       responses:
         '200':
-          description: Roles fetched.
+          description: Roles fetched
+          content:
+            application/json:
+              example:
+                success: true
+                message: Roles fetched.
+                module: role
+                data:
+                  - id: 1
+                    name: Administrator
+                    description: Full platform administrative control
+                  - id: 2
+                    name: HR Manager
+                    description: HRMS sub-system manager
+                meta:
+                  page: 1
+                  limit: 20
+                  total: 2
+                  totalPages: 1
+                timestamp: '2026-07-25 20:18:00'
+        '401':
+          $ref: '#/components/responses/401UnauthorizedError'
+
     post:
       tags: [RBAC - Roles]
-      summary: Create role
+      summary: Create new role
       security:
         - bearerAuth: []
       requestBody:
@@ -27,11 +52,28 @@ paths:
               type: object
               required: [name]
               properties:
-                name: { type: string }
-                description: { type: string }
+                name:
+                  type: string
+                  example: Sales Manager
+                description:
+                  type: string
+                  example: CRM & Sales pipeline access
       responses:
         '201':
-          description: Role created.
+          description: Role created
+          content:
+            application/json:
+              example:
+                success: true
+                message: Role created.
+                module: role
+                data:
+                  id: 3
+                  name: Sales Manager
+                  description: CRM & Sales pipeline access
+                timestamp: '2026-07-25 20:18:00'
+        '400':
+          $ref: '#/components/responses/400ValidationError'
 
   /rbac/roles/{id}:
     get:
@@ -40,51 +82,83 @@ paths:
       security:
         - bearerAuth: []
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema: { type: integer }
+        - $ref: '#/components/parameters/ResourceId'
       responses:
         '200':
-          description: Role details.
+          description: Role details
+          content:
+            application/json:
+              example:
+                success: true
+                message: Role fetched.
+                module: role
+                data:
+                  id: 1
+                  name: Administrator
+                timestamp: '2026-07-25 20:18:00'
+        '404':
+          $ref: '#/components/responses/404NotFoundError'
+
     patch:
       tags: [RBAC - Roles]
       summary: Update role
       security:
         - bearerAuth: []
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema: { type: integer }
+        - $ref: '#/components/parameters/ResourceId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: Senior HR Manager
+                description:
+                  type: string
+                  example: Full HRMS & Payroll approval control
       responses:
         '200':
-          description: Role updated.
+          description: Role updated
+          content:
+            application/json:
+              example:
+                success: true
+                message: Role updated.
+                module: role
+                data:
+                  id: 2
+                  name: Senior HR Manager
+                timestamp: '2026-07-25 20:18:00'
+
     delete:
       tags: [RBAC - Roles]
       summary: Delete role
       security:
         - bearerAuth: []
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema: { type: integer }
+        - $ref: '#/components/parameters/ResourceId'
       responses:
         '200':
-          description: Role deleted.
+          description: Role deleted
+          content:
+            application/json:
+              example:
+                success: true
+                message: Role deleted.
+                module: role
+                timestamp: '2026-07-25 20:18:00'
 
   /rbac/roles/{id}/permissions:
     put:
       tags: [RBAC - Roles]
-      summary: Set permissions for role
+      summary: Set permissions for role (replaces existing grants)
       security:
         - bearerAuth: []
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema: { type: integer }
+        - $ref: '#/components/parameters/ResourceId'
       requestBody:
         required: true
         content:
@@ -95,10 +169,21 @@ paths:
               properties:
                 permissionIds:
                   type: array
-                  items: { type: integer }
+                  items:
+                    type: integer
+                  example: [1, 2, 5, 8]
       responses:
         '200':
-          description: Permissions set.
+          description: Permissions updated
+          content:
+            application/json:
+              example:
+                success: true
+                message: Permissions updated.
+                module: role
+                timestamp: '2026-07-25 20:18:00'
+        '400':
+          $ref: '#/components/responses/400ValidationError'
 
   /rbac/roles/{id}/assign:
     post:
@@ -107,10 +192,7 @@ paths:
       security:
         - bearerAuth: []
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema: { type: integer }
+        - $ref: '#/components/parameters/ResourceId'
       requestBody:
         required: true
         content:
@@ -119,19 +201,56 @@ paths:
               type: object
               required: [userId]
               properties:
-                userId: { type: integer }
-                branchId: { type: integer }
-                departmentId: { type: integer }
+                userId:
+                  type: integer
+                  example: 1
+                branchId:
+                  type: integer
+                  example: 1
+                departmentId:
+                  type: integer
+                  example: 2
       responses:
         '201':
-          description: Role assigned.
+          description: Role assigned
+          content:
+            application/json:
+              example:
+                success: true
+                message: Role assigned.
+                module: role
+                timestamp: '2026-07-25 20:18:00'
+        '400':
+          $ref: '#/components/responses/400ValidationError'
 
   /rbac/permissions:
     get:
       tags: [RBAC - Permissions]
-      summary: List all permissions (paginated)
+      summary: List all available permissions (paginated)
       security:
         - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PageQuery'
+        - $ref: '#/components/parameters/LimitQuery'
       responses:
         '200':
-          description: Permissions fetched.
+          description: Permissions fetched
+          content:
+            application/json:
+              example:
+                success: true
+                message: Permissions fetched.
+                module: permission
+                data:
+                  - id: 1
+                    key: user:create
+                    name: Create User
+                  - id: 2
+                    key: user:read
+                    name: View User
+                meta:
+                  page: 1
+                  limit: 20
+                  total: 2
+                  totalPages: 1
+                timestamp: '2026-07-25 20:18:00'

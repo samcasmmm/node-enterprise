@@ -10,18 +10,37 @@ paths:
       security:
         - bearerAuth: []
       parameters:
-        - name: page
-          in: query
-          schema: { type: integer, default: 1 }
-        - name: limit
-          in: query
-          schema: { type: integer, default: 20 }
+        - $ref: '#/components/parameters/PageQuery'
+        - $ref: '#/components/parameters/LimitQuery'
       responses:
         '200':
-          description: Tenants fetched.
+          description: Tenants fetched
+          content:
+            application/json:
+              example:
+                success: true
+                message: Data fetched successfully.
+                module: tenant
+                data:
+                  - id: 1
+                    name: Acme Corporation
+                    slug: acme-corp
+                    domain: acme.example.com
+                    isActive: true
+                meta:
+                  page: 1
+                  limit: 20
+                  total: 1
+                  totalPages: 1
+                timestamp: '2026-07-25 20:18:00'
+        '401':
+          $ref: '#/components/responses/401UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/403ForbiddenError'
+
     post:
       tags: [Tenants]
-      summary: Create tenant
+      summary: Create new tenant
       security:
         - bearerAuth: []
       requestBody:
@@ -32,12 +51,36 @@ paths:
               type: object
               required: [name, slug]
               properties:
-                name: { type: string }
-                slug: { type: string }
-                domain: { type: string }
+                name:
+                  type: string
+                  example: Globex Corporation
+                slug:
+                  type: string
+                  pattern: '^[a-z0-9-]+$'
+                  example: globex-corp
+                domain:
+                  type: string
+                  example: globex.example.com
       responses:
         '201':
-          description: Tenant created.
+          description: Tenant created
+          content:
+            application/json:
+              example:
+                success: true
+                message: Tenant created.
+                module: tenant
+                data:
+                  id: 2
+                  name: Globex Corporation
+                  slug: globex-corp
+                  domain: globex.example.com
+                  isActive: true
+                timestamp: '2026-07-25 20:18:00'
+        '400':
+          $ref: '#/components/responses/400ValidationError'
+        '401':
+          $ref: '#/components/responses/401UnauthorizedError'
 
   /tenants/{id}:
     get:
@@ -46,23 +89,33 @@ paths:
       security:
         - bearerAuth: []
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema: { type: integer }
+        - $ref: '#/components/parameters/ResourceId'
       responses:
         '200':
-          description: Tenant details.
+          description: Tenant details
+          content:
+            application/json:
+              example:
+                success: true
+                message: Tenant fetched.
+                module: tenant
+                data:
+                  id: 1
+                  name: Acme Corporation
+                  slug: acme-corp
+                  domain: acme.example.com
+                  isActive: true
+                timestamp: '2026-07-25 20:18:00'
+        '404':
+          $ref: '#/components/responses/404NotFoundError'
+
     patch:
       tags: [Tenants]
-      summary: Update tenant
+      summary: Update tenant details
       security:
         - bearerAuth: []
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema: { type: integer }
+        - $ref: '#/components/parameters/ResourceId'
       requestBody:
         required: true
         content:
@@ -70,22 +123,48 @@ paths:
             schema:
               type: object
               properties:
-                name: { type: string }
-                slug: { type: string }
-                domain: { type: string }
+                name:
+                  type: string
+                  example: Acme Corp International
+                domain:
+                  type: string
+                  example: acme-global.example.com
       responses:
         '200':
-          description: Tenant updated.
+          description: Tenant updated
+          content:
+            application/json:
+              example:
+                success: true
+                message: Tenant updated.
+                module: tenant
+                data:
+                  id: 1
+                  name: Acme Corp International
+                  slug: acme-corp
+                  domain: acme-global.example.com
+                timestamp: '2026-07-25 20:18:00'
+        '400':
+          $ref: '#/components/responses/400ValidationError'
+        '404':
+          $ref: '#/components/responses/404NotFoundError'
+
     delete:
       tags: [Tenants]
       summary: Delete tenant (soft delete)
       security:
         - bearerAuth: []
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema: { type: integer }
+        - $ref: '#/components/parameters/ResourceId'
       responses:
         '200':
-          description: Tenant deleted.
+          description: Tenant deleted
+          content:
+            application/json:
+              example:
+                success: true
+                message: Tenant deleted.
+                module: tenant
+                timestamp: '2026-07-25 20:18:00'
+        '404':
+          $ref: '#/components/responses/404NotFoundError'

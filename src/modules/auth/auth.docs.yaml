@@ -7,12 +7,9 @@ paths:
     post:
       tags: [Auth]
       summary: Register a new user account
+      description: Creates a new user under the tenant resolved from the X-Tenant-Id header.
       parameters:
-        - in: header
-          name: X-Tenant-Id
-          required: true
-          schema:
-            type: integer
+        - $ref: '#/components/parameters/XTenantId'
       requestBody:
         required: true
         content:
@@ -21,23 +18,43 @@ paths:
               type: object
               required: [name, email, password]
               properties:
-                name: { type: string }
-                email: { type: string, format: email }
-                password: { type: string, minLength: 8 }
+                name:
+                  type: string
+                  example: Jane Doe
+                email:
+                  type: string
+                  format: email
+                  example: jane.doe@acme-enterprise.com
+                password:
+                  type: string
+                  minLength: 8
+                  example: P@ssw0rd2026!
+                organizationId:
+                  type: integer
+                  example: 1
       responses:
         '201':
-          description: Account created successfully.
+          description: Account created successfully
+          content:
+            application/json:
+              example:
+                success: true
+                message: Account created.
+                module: auth
+                data:
+                  id: 1
+                  email: jane.doe@acme-enterprise.com
+                timestamp: '2026-07-25 20:18:00'
+        '400':
+          $ref: '#/components/responses/400ValidationError'
 
   /auth/login:
     post:
       tags: [Auth]
       summary: Authenticate user and issue JWT tokens
+      description: Authenticates user credentials and returns JWT access and refresh tokens.
       parameters:
-        - in: header
-          name: X-Tenant-Id
-          required: true
-          schema:
-            type: integer
+        - $ref: '#/components/parameters/XTenantId'
       requestBody:
         required: true
         content:
@@ -46,11 +63,43 @@ paths:
               type: object
               required: [email, password]
               properties:
-                email: { type: string, format: email }
-                password: { type: string }
+                email:
+                  type: string
+                  format: email
+                  example: admin@acme-enterprise.com
+                password:
+                  type: string
+                  example: Admin123!
+                deviceFingerprint:
+                  type: string
+                  example: fp_macbook_pro_m2_99218
+                deviceName:
+                  type: string
+                  example: Jane's MacBook Pro
+                platform:
+                  type: string
+                  example: macOS 14.5
       responses:
         '200':
-          description: Login successful.
+          description: Login successful
+          content:
+            application/json:
+              example:
+                success: true
+                message: Login successful.
+                module: auth
+                data:
+                  user:
+                    id: 1
+                    name: Jane Doe
+                    email: admin@acme-enterprise.com
+                  accessToken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsInRlbmFudElkIjoxfQ.example_access_token
+                  refreshToken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjF9.example_refresh_token
+                timestamp: '2026-07-25 20:18:00'
+        '400':
+          $ref: '#/components/responses/400ValidationError'
+        '401':
+          $ref: '#/components/responses/401UnauthorizedError'
 
   /auth/refresh:
     post:
@@ -64,10 +113,24 @@ paths:
               type: object
               required: [refreshToken]
               properties:
-                refreshToken: { type: string }
+                refreshToken:
+                  type: string
+                  example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjF9.example_refresh_token
       responses:
         '200':
-          description: Token refreshed.
+          description: Token refreshed successfully
+          content:
+            application/json:
+              example:
+                success: true
+                message: Token refreshed.
+                module: auth
+                data:
+                  accessToken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsInRlbmFudElkIjoxfQ.new_access_token
+                  refreshToken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjF9.new_refresh_token
+                timestamp: '2026-07-25 20:18:00'
+        '401':
+          $ref: '#/components/responses/401UnauthorizedError'
 
   /auth/logout:
     post:
@@ -75,24 +138,58 @@ paths:
       summary: Logout user session
       security:
         - bearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refreshToken:
+                  type: string
+                  example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjF9.example_refresh_token
       responses:
         '200':
-          description: Logged out successfully.
+          description: Logged out successfully
+          content:
+            application/json:
+              example:
+                success: true
+                message: Logged out.
+                module: auth
+                timestamp: '2026-07-25 20:18:00'
+        '401':
+          $ref: '#/components/responses/401UnauthorizedError'
 
   /auth/me:
     get:
       tags: [Auth]
-      summary: Get current user profile
+      summary: Get current authenticated user profile
       security:
         - bearerAuth: []
       responses:
         '200':
-          description: User profile details.
+          description: User profile details
+          content:
+            application/json:
+              example:
+                success: true
+                message: Current user.
+                module: auth
+                data:
+                  id: 1
+                  userName: admin
+                  email: admin@acme-enterprise.com
+                  tenantId: 1
+                  organizationId: 1
+                  branchId: 1
+                timestamp: '2026-07-25 20:18:00'
+        '401':
+          $ref: '#/components/responses/401UnauthorizedError'
 
   /auth/otp/send:
     post:
       tags: [Auth]
-      summary: Send OTP code
+      summary: Send OTP verification code
       requestBody:
         required: true
         content:
@@ -101,12 +198,30 @@ paths:
               type: object
               required: [destination, purpose]
               properties:
-                destination: { type: string }
-                purpose: { type: string, enum: [login, signup, reset_password, mfa, verify_phone, verify_email] }
-                channel: { type: string, enum: [email, sms] }
+                destination:
+                  type: string
+                  example: jane.doe@acme-enterprise.com
+                purpose:
+                  type: string
+                  enum: [login, signup, reset_password, mfa, verify_phone, verify_email]
+                  example: login
+                channel:
+                  type: string
+                  enum: [email, sms]
+                  default: email
+                  example: email
       responses:
         '200':
-          description: OTP sent.
+          description: OTP sent
+          content:
+            application/json:
+              example:
+                success: true
+                message: OTP sent.
+                module: auth
+                timestamp: '2026-07-25 20:18:00'
+        '400':
+          $ref: '#/components/responses/400ValidationError'
 
   /auth/otp/verify:
     post:
@@ -120,17 +235,34 @@ paths:
               type: object
               required: [destination, purpose, code]
               properties:
-                destination: { type: string }
-                purpose: { type: string }
-                code: { type: string }
+                destination:
+                  type: string
+                  example: jane.doe@acme-enterprise.com
+                purpose:
+                  type: string
+                  example: login
+                code:
+                  type: string
+                  minLength: 6
+                  maxLength: 6
+                  example: '492810'
       responses:
         '200':
-          description: OTP verified.
+          description: OTP verified
+          content:
+            application/json:
+              example:
+                success: true
+                message: OTP verified.
+                module: auth
+                timestamp: '2026-07-25 20:18:00'
+        '400':
+          $ref: '#/components/responses/400ValidationError'
 
   /auth/mfa/enroll:
     post:
       tags: [Auth]
-      summary: Enroll MFA factor
+      summary: Enroll new MFA factor
       security:
         - bearerAuth: []
       requestBody:
@@ -141,10 +273,27 @@ paths:
               type: object
               required: [type]
               properties:
-                type: { type: string, enum: [totp, sms, email, webauthn] }
+                type:
+                  type: string
+                  enum: [totp, sms, email, webauthn]
+                  example: totp
       responses:
         '201':
-          description: MFA factor enrolled.
+          description: MFA factor created
+          content:
+            application/json:
+              example:
+                success: true
+                message: MFA factor created.
+                module: auth
+                data:
+                  id: 1
+                  type: totp
+                  secret: 4f9d8a3e7b1c2d3e4f5a6b7c8d9e0f1a
+                  isVerified: false
+                timestamp: '2026-07-25 20:18:00'
+        '401':
+          $ref: '#/components/responses/401UnauthorizedError'
 
   /auth/mfa/verify:
     post:
@@ -160,33 +309,74 @@ paths:
               type: object
               required: [factorId, code]
               properties:
-                factorId: { type: integer }
-                code: { type: string }
+                factorId:
+                  type: integer
+                  example: 1
+                code:
+                  type: string
+                  minLength: 6
+                  maxLength: 6
+                  example: '123456'
       responses:
         '200':
-          description: MFA factor verified.
+          description: MFA verified
+          content:
+            application/json:
+              example:
+                success: true
+                message: MFA verified.
+                module: auth
+                data:
+                  id: 1
+                  type: totp
+                  isVerified: true
+                  isPrimary: true
+                timestamp: '2026-07-25 20:18:00'
+        '400':
+          $ref: '#/components/responses/400ValidationError'
 
   /auth/devices:
     get:
       tags: [Auth]
-      summary: List active devices
+      summary: List active logged-in devices
       security:
         - bearerAuth: []
       responses:
         '200':
-          description: Devices listed.
+          description: Devices fetched
+          content:
+            application/json:
+              example:
+                success: true
+                message: Devices fetched.
+                module: auth
+                data:
+                  - id: 1
+                    name: Jane's MacBook Pro
+                    platform: macOS 14.5
+                    lastIpAddress: 192.168.1.10
+                    isTrusted: true
+                timestamp: '2026-07-25 20:18:00'
+        '401':
+          $ref: '#/components/responses/401UnauthorizedError'
 
   /auth/devices/{id}:
     delete:
       tags: [Auth]
-      summary: Revoke device
+      summary: Revoke a registered device
       security:
         - bearerAuth: []
       parameters:
-        - in: path
-          name: id
-          required: true
-          schema: { type: integer }
+        - $ref: '#/components/parameters/ResourceId'
       responses:
         '200':
-          description: Device revoked.
+          description: Device revoked
+          content:
+            application/json:
+              example:
+                success: true
+                message: Device revoked.
+                module: auth
+                timestamp: '2026-07-25 20:18:00'
+        '401':
+          $ref: '#/components/responses/401UnauthorizedError'

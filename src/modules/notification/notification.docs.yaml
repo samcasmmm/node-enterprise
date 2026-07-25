@@ -9,9 +9,34 @@ paths:
       summary: List notification logs (paginated)
       security:
         - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PageQuery'
+        - $ref: '#/components/parameters/LimitQuery'
       responses:
         '200':
-          description: Notifications fetched.
+          description: Notifications fetched
+          content:
+            application/json:
+              example:
+                success: true
+                message: Notifications fetched.
+                module: notification
+                data:
+                  - id: 1
+                    userId: 1
+                    channel: email
+                    title: Welcome to Enterprise ERP
+                    body: Your account has been activated.
+                    status: sent
+                    sentAt: '2026-07-25T20:18:00.000Z'
+                meta:
+                  page: 1
+                  limit: 20
+                  total: 1
+                  totalPages: 1
+                timestamp: '2026-07-25 20:18:00'
+        '401':
+          $ref: '#/components/responses/401UnauthorizedError'
 
   /notifications/send:
     post:
@@ -27,16 +52,46 @@ paths:
               type: object
               required: [channel, to, body]
               properties:
-                userId: { type: integer }
-                channel: { type: string, enum: [email, sms, push, whatsapp, slack, teams, discord, webhook] }
-                to: { type: string }
-                templateKey: { type: string }
-                title: { type: string }
-                body: { type: string }
-                data: { type: object }
+                userId:
+                  type: integer
+                  example: 1
+                channel:
+                  type: string
+                  enum: [email, sms, push, whatsapp, slack, teams, discord, webhook]
+                  example: email
+                to:
+                  type: string
+                  example: john.doe@acme-enterprise.com
+                templateKey:
+                  type: string
+                  example: welcome_email
+                title:
+                  type: string
+                  example: Welcome to Enterprise ERP
+                body:
+                  type: string
+                  example: Hello {{name}}, welcome to our platform!
+                data:
+                  type: object
+                  example:
+                    name: John Doe
       responses:
         '201':
-          description: Notification dispatched.
+          description: Notification dispatched
+          content:
+            application/json:
+              example:
+                success: true
+                message: Notification dispatched.
+                module: notification
+                data:
+                  id: 2
+                  channel: email
+                  to: john.doe@acme-enterprise.com
+                  status: queued
+                timestamp: '2026-07-25 20:18:00'
+        '400':
+          $ref: '#/components/responses/400ValidationError'
 
   /notifications/{id}/read:
     patch:
@@ -45,10 +100,18 @@ paths:
       security:
         - bearerAuth: []
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema: { type: integer }
+        - $ref: '#/components/parameters/ResourceId'
       responses:
         '200':
-          description: Marked as read.
+          description: Marked as read
+          content:
+            application/json:
+              example:
+                success: true
+                message: Marked as read.
+                module: notification
+                timestamp: '2026-07-25 20:18:00'
+        '401':
+          $ref: '#/components/responses/401UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/404NotFoundError'

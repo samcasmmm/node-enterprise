@@ -52,10 +52,6 @@ class App {
   }
 
   private initializeParsers(): void {
-    // better-auth needs the raw (unparsed) request for its OAuth/session handlers,
-    // so it must be mounted before express.json().
-    this.instance.all('/api/auth/*', toNodeHandler(auth) as unknown as RequestHandler);
-
     this.instance.use(express.json());
     this.instance.use(express.urlencoded({ extended: true }));
     this.instance.use(cookieParser() as unknown as RequestHandler);
@@ -93,6 +89,8 @@ class App {
   private initializeRoutes(): void {
     this.instance.use('/api/docs', docsRouter);
     this.instance.use('/api', moduleRoutes);
+    // Fallback for better-auth OAuth / social auth routes
+    this.instance.all('/api/auth/*', toNodeHandler(auth) as unknown as RequestHandler);
   }
 
   private initializeErrorHandling(): void {

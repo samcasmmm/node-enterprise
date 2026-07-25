@@ -1,0 +1,237 @@
+openapi: 3.0.3
+info:
+  title: Node Enterprise ERP API
+  version: 1.0.0
+  description: |
+    Multi-tenant SaaS Enterprise Resource Planning (ERP) Backend API Reference.
+
+    ### Global Error Handling Architecture
+
+    All exceptions thrown across routes, services, and controllers extend typed domain/HTTP error classes:
+    - **`HttpError`** / **`AppError`**: Typed operational errors (`ValidationError`, `NotFoundError`, `UnauthorizedError`, `ForbiddenError`).
+    - **`DomainError`**: Business logic violations thrown from domain services.
+
+    The global `errorHandlerMiddleware` in `src/core/middlewares/error.middleware.ts` catches all errors and formats them into a standard response envelope:
+
+    ```json
+    {
+      "success": false,
+      "message": "Validation failed",
+      "module": "auth",
+      "error": {
+        "code": "VALIDATION_ERROR",
+        "details": {
+          "errors": [
+            { "field": "email", "message": "Invalid email address format" }
+          ]
+        }
+      },
+      "timestamp": "2026-07-25 20:18:00"
+    }
+    ```
+
+servers:
+  - url: http://localhost:3000/api
+    description: Local Development Server
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Enter your JWT access token (e.g. obtained from `/auth/login`)
+
+  parameters:
+    XTenantId:
+      name: X-Tenant-Id
+      in: header
+      required: true
+      description: Numeric Tenant ID for pre-auth / tenant resolution
+      schema:
+        type: integer
+        example: 1
+
+    ResourceId:
+      name: id
+      in: path
+      required: true
+      description: Primary key ID of the resource
+      schema:
+        type: integer
+        example: 1
+
+    PageQuery:
+      name: page
+      in: query
+      description: Page number for pagination
+      schema:
+        type: integer
+        default: 1
+        example: 1
+
+    LimitQuery:
+      name: limit
+      in: query
+      description: Number of items per page (max 100)
+      schema:
+        type: integer
+        default: 20
+        example: 20
+
+  responses:
+    400ValidationError:
+      description: Validation failed (invalid input parameter or request body)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+          example:
+            success: false
+            message: Validation failed
+            module: auth
+            error:
+              code: VALIDATION_ERROR
+              details:
+                errors:
+                  - field: email
+                    message: Invalid email address format
+                  - field: password
+                    message: Password must be at least 8 characters
+            timestamp: '2026-07-25 20:18:00'
+
+    401UnauthorizedError:
+      description: Authentication required or invalid/expired credentials
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+          example:
+            success: false
+            message: Unauthorized: Authentication token is missing or invalid.
+            module: auth
+            error:
+              code: UNAUTHORIZED
+            timestamp: '2026-07-25 20:18:00'
+
+    403ForbiddenError:
+      description: Insufficient permissions for this action
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+          example:
+            success: false
+            message: Forbidden: You do not have permission to execute this action.
+            module: rbac
+            error:
+              code: FORBIDDEN
+              details:
+                requiredPermission: user:create
+            timestamp: '2026-07-25 20:18:00'
+
+    404NotFoundError:
+      description: Requested route or resource was not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+          example:
+            success: false
+            message: Resource not found.
+            module: core
+            error:
+              code: NOT_FOUND
+            timestamp: '2026-07-25 20:18:00'
+
+    500InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+          example:
+            success: false
+            message: An unexpected internal error occurred.
+            module: system
+            error:
+              code: INTERNAL_SERVER_ERROR
+            timestamp: '2026-07-25 20:18:00'
+
+  schemas:
+    SuccessEnvelope:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Operation completed successfully.
+        module:
+          type: string
+          example: auth
+        data:
+          type: object
+        timestamp:
+          type: string
+          example: '2026-07-25 20:18:00'
+
+    PaginatedEnvelope:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Data fetched successfully.
+        module:
+          type: string
+          example: users
+        data:
+          type: array
+          items:
+            type: object
+        meta:
+          type: object
+          properties:
+            page:
+              type: integer
+              example: 1
+            limit:
+              type: integer
+              example: 20
+            total:
+              type: integer
+              example: 45
+            totalPages:
+              type: integer
+              example: 3
+        timestamp:
+          type: string
+          example: '2026-07-25 20:18:00'
+
+    ErrorEnvelope:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: Request failed.
+        module:
+          type: string
+          example: auth
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: VALIDATION_ERROR
+            details:
+              type: object
+        timestamp:
+          type: string
+          example: '2026-07-25 20:18:00'

@@ -82,6 +82,14 @@ function buildOpenApiSpec(): any {
                   ...baseSpec.components.securitySchemes,
                   ...modSpec.components?.securitySchemes,
                 };
+                baseSpec.components.parameters = {
+                  ...baseSpec.components.parameters,
+                  ...modSpec.components?.parameters,
+                };
+                baseSpec.components.responses = {
+                  ...baseSpec.components.responses,
+                  ...modSpec.components?.responses,
+                };
               }
               if (modSpec.tags && Array.isArray(modSpec.tags)) {
                 baseSpec.tags = [...baseSpec.tags, ...modSpec.tags];

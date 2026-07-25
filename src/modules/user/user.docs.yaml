@@ -10,18 +10,35 @@ paths:
       security:
         - bearerAuth: []
       parameters:
-        - name: page
-          in: query
-          schema: { type: integer, default: 1 }
-        - name: limit
-          in: query
-          schema: { type: integer, default: 20 }
+        - $ref: '#/components/parameters/PageQuery'
+        - $ref: '#/components/parameters/LimitQuery'
       responses:
         '200':
-          description: Users fetched.
+          description: Users fetched
+          content:
+            application/json:
+              example:
+                success: true
+                message: Users fetched.
+                module: user
+                data:
+                  - id: 1
+                    name: John Doe
+                    email: john@acme-enterprise.com
+                    phone: '+1234567890'
+                    isActive: true
+                meta:
+                  page: 1
+                  limit: 20
+                  total: 1
+                  totalPages: 1
+                timestamp: '2026-07-25 20:18:00'
+        '401':
+          $ref: '#/components/responses/401UnauthorizedError'
+
     post:
       tags: [Users]
-      summary: Create user
+      summary: Create new user
       security:
         - bearerAuth: []
       requestBody:
@@ -32,15 +49,43 @@ paths:
               type: object
               required: [name, email]
               properties:
-                name: { type: string }
-                email: { type: string, format: email }
-                password: { type: string, minLength: 8 }
-                phone: { type: string }
-                organizationId: { type: integer }
-                branchId: { type: integer }
+                name:
+                  type: string
+                  example: Robert Smith
+                email:
+                  type: string
+                  format: email
+                  example: robert.smith@acme-enterprise.com
+                password:
+                  type: string
+                  minLength: 8
+                  example: SecurePass2026!
+                phone:
+                  type: string
+                  example: '+15550192834'
+                organizationId:
+                  type: integer
+                  example: 1
+                branchId:
+                  type: integer
+                  example: 1
       responses:
         '201':
-          description: User created.
+          description: User created
+          content:
+            application/json:
+              example:
+                success: true
+                message: User created.
+                module: user
+                data:
+                  id: 2
+                  name: Robert Smith
+                  email: robert.smith@acme-enterprise.com
+                  isActive: true
+                timestamp: '2026-07-25 20:18:00'
+        '400':
+          $ref: '#/components/responses/400ValidationError'
 
   /users/{id}:
     get:
@@ -49,23 +94,32 @@ paths:
       security:
         - bearerAuth: []
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema: { type: integer }
+        - $ref: '#/components/parameters/ResourceId'
       responses:
         '200':
-          description: User details.
+          description: User details
+          content:
+            application/json:
+              example:
+                success: true
+                message: User details.
+                module: user
+                data:
+                  id: 1
+                  name: John Doe
+                  email: john@acme-enterprise.com
+                  isActive: true
+                timestamp: '2026-07-25 20:18:00'
+        '404':
+          $ref: '#/components/responses/404NotFoundError'
+
     patch:
       tags: [Users]
-      summary: Update user
+      summary: Update user details
       security:
         - bearerAuth: []
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema: { type: integer }
+        - $ref: '#/components/parameters/ResourceId'
       requestBody:
         required: true
         content:
@@ -73,24 +127,47 @@ paths:
             schema:
               type: object
               properties:
-                name: { type: string }
-                email: { type: string, format: email }
-                phone: { type: string }
-                organizationId: { type: integer }
-                branchId: { type: integer }
+                name:
+                  type: string
+                  example: Johnathan Doe
+                phone:
+                  type: string
+                  example: '+19876543210'
       responses:
         '200':
-          description: User updated.
+          description: User updated
+          content:
+            application/json:
+              example:
+                success: true
+                message: User updated.
+                module: user
+                data:
+                  id: 1
+                  name: Johnathan Doe
+                  email: john@acme-enterprise.com
+                timestamp: '2026-07-25 20:18:00'
+        '400':
+          $ref: '#/components/responses/400ValidationError'
+        '404':
+          $ref: '#/components/responses/404NotFoundError'
+
     delete:
       tags: [Users]
       summary: Delete user (soft delete)
       security:
         - bearerAuth: []
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema: { type: integer }
+        - $ref: '#/components/parameters/ResourceId'
       responses:
         '200':
-          description: User deleted.
+          description: User deleted
+          content:
+            application/json:
+              example:
+                success: true
+                message: User deleted.
+                module: user
+                timestamp: '2026-07-25 20:18:00'
+        '404':
+          $ref: '#/components/responses/404NotFoundError'

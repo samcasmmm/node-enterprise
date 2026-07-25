@@ -1,32 +1,52 @@
 tags:
   - name: Settings
-    description: Tenant settings management by category
+    description: Tenant configuration settings by category (email, sms, general, etc.)
 
 paths:
   /settings/{category}:
     get:
       tags: [Settings]
-      summary: Get settings by category
+      summary: Get configuration settings by category
       security:
         - bearerAuth: []
       parameters:
         - name: category
           in: path
           required: true
-          schema: { type: string, example: email }
+          description: Category key (email, sms, general, theme, tax, localization, storage)
+          schema:
+            type: string
+            example: email
       responses:
         '200':
-          description: Settings fetched.
+          description: Category settings fetched
+          content:
+            application/json:
+              example:
+                success: true
+                message: Settings fetched.
+                module: settings
+                data:
+                  smtp_host: smtp.sendgrid.net
+                  smtp_port: 587
+                  smtp_user: apikey
+                  mail_from: noreply@acme-enterprise.com
+                timestamp: '2026-07-25 20:18:00'
+        '401':
+          $ref: '#/components/responses/401UnauthorizedError'
+
     put:
       tags: [Settings]
-      summary: Update settings for a category
+      summary: Update configuration settings for a category
       security:
         - bearerAuth: []
       parameters:
         - name: category
           in: path
           required: true
-          schema: { type: string, example: email }
+          schema:
+            type: string
+            example: email
       requestBody:
         required: true
         content:
@@ -35,8 +55,26 @@ paths:
               type: object
               required: [values]
               properties:
-                values: { type: object }
-                secretKeys: { type: array, items: { type: string } }
+                values:
+                  type: object
+                  example:
+                    smtp_host: smtp.sendgrid.net
+                    smtp_port: 587
+                    smtp_user: apikey
+                    smtp_password: SG.secret_api_key_here
+                secretKeys:
+                  type: array
+                  items: { type: string }
+                  example: [smtp_password]
       responses:
         '200':
-          description: Settings updated.
+          description: Category settings updated
+          content:
+            application/json:
+              example:
+                success: true
+                message: Settings updated.
+                module: settings
+                timestamp: '2026-07-25 20:18:00'
+        '400':
+          $ref: '#/components/responses/400ValidationError'
