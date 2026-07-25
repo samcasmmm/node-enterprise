@@ -3,8 +3,12 @@ import jwt from 'jsonwebtoken';
 import appConfig from '@/config/app.config.js';
 
 export interface DecodedToken {
-  userId: number;
-  userName: string;
+  userId: string;
+  userName?: string;
+  email?: string;
+  tenantId?: string;
+  organizationId?: string;
+  branchId?: string;
 }
 
 export const isAuth = async (
@@ -28,6 +32,10 @@ export const isAuth = async (
     req.user = {
       id: decoded.userId,
       userName: decoded.userName,
+      email: decoded.email,
+      tenantId: decoded.tenantId,
+      organizationId: decoded.organizationId,
+      branchId: decoded.branchId,
     };
 
     next();
