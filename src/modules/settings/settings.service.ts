@@ -17,12 +17,12 @@ export class SettingsService extends BaseService<Setting, NewSetting> {
     super(settingsRepository, 'Setting');
   }
 
-  async getCategory(tenantId: string, category: string): Promise<Record<string, unknown>> {
+  async getCategory(tenantId: number, category: string): Promise<Record<string, unknown>> {
     const rows = await this.settingsRepository.findByCategory(tenantId, category);
     return Object.fromEntries(rows.map((r) => [r.key, r.value]));
   }
 
-  async setCategory(tenantId: string, category: string, values: Record<string, unknown>, secretKeys: string[] = []): Promise<void> {
+  async setCategory(tenantId: number, category: string, values: Record<string, unknown>, secretKeys: string[] = []): Promise<void> {
     for (const [key, value] of Object.entries(values)) {
       await this.settingsRepository.upsert(tenantId, category, key, value, secretKeys.includes(key));
     }

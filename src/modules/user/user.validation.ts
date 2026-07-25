@@ -5,8 +5,8 @@ export const createUserSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8).optional(),
   phone: z.string().max(30).optional(),
-  organizationId: z.string().uuid().optional(),
-  branchId: z.string().uuid().optional(),
+  organizationId: z.coerce.number().optional(),
+  branchId: z.coerce.number().optional(),
 });
 
 export const updateUserSchema = createUserSchema.partial().omit({ password: true });

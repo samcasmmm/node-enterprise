@@ -1,4 +1,4 @@
-import { pgTable, varchar, uuid, boolean, text, timestamp, integer, jsonb, index, pgEnum } from 'drizzle-orm/pg-core';
+import { pgTable, varchar,  boolean, text, timestamp, integer, jsonb, index, pgEnum, bigint } from 'drizzle-orm/pg-core';
 import { idColumn, timestamps } from './_shared.columns.js';
 import { tenantsTable } from './multi-tenancy.schema.js';
 import { usersTable } from './users.schema.js';
@@ -12,11 +12,11 @@ export const sessionsTable = pgTable(
   'sessions',
   {
     id: idColumn(),
-    userId: uuid('user_id').notNull().references(() => usersTable.id, { onDelete: 'cascade' }),
+    userId: bigint('user_id', { mode: 'number' }).notNull().references(() => usersTable.id, { onDelete: 'cascade' }),
     token: varchar('token', { length: 255 }).notNull(),
     ipAddress: varchar('ip_address', { length: 60 }),
     userAgent: text('user_agent'),
-    deviceId: uuid('device_id'),
+    deviceId: bigint('device_id', { mode: 'number' }),
     expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
     revokedAt: timestamp('revoked_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
@@ -32,7 +32,7 @@ export const oauthAccountsTable = pgTable(
   'oauth_accounts',
   {
     id: idColumn(),
-    userId: uuid('user_id').notNull().references(() => usersTable.id, { onDelete: 'cascade' }),
+    userId: bigint('user_id', { mode: 'number' }).notNull().references(() => usersTable.id, { onDelete: 'cascade' }),
     provider: oauthProviderEnum('provider').notNull(),
     providerAccountId: varchar('provider_account_id', { length: 255 }).notNull(),
     accessToken: text('access_token'),
@@ -50,7 +50,7 @@ export const otpsTable = pgTable(
   'otps',
   {
     id: idColumn(),
-    userId: uuid('user_id').references(() => usersTable.id, { onDelete: 'cascade' }),
+    userId: bigint('user_id', { mode: 'number' }).references(() => usersTable.id, { onDelete: 'cascade' }),
     destination: varchar('destination', { length: 255 }).notNull(), // email or phone
     codeHash: text('code_hash').notNull(),
     purpose: otpPurposeEnum('purpose').notNull(),
@@ -69,7 +69,7 @@ export const mfaFactorsTable = pgTable(
   'mfa_factors',
   {
     id: idColumn(),
-    userId: uuid('user_id').notNull().references(() => usersTable.id, { onDelete: 'cascade' }),
+    userId: bigint('user_id', { mode: 'number' }).notNull().references(() => usersTable.id, { onDelete: 'cascade' }),
     type: mfaTypeEnum('type').notNull(),
     secret: text('secret'),
     isVerified: boolean('is_verified').default(false).notNull(),
@@ -85,7 +85,7 @@ export const devicesTable = pgTable(
   'devices',
   {
     id: idColumn(),
-    userId: uuid('user_id').notNull().references(() => usersTable.id, { onDelete: 'cascade' }),
+    userId: bigint('user_id', { mode: 'number' }).notNull().references(() => usersTable.id, { onDelete: 'cascade' }),
     name: varchar('name', { length: 150 }),
     fingerprint: varchar('fingerprint', { length: 255 }).notNull(),
     platform: varchar('platform', { length: 60 }),
@@ -103,7 +103,7 @@ export const passwordPoliciesTable = pgTable(
   'password_policies',
   {
     id: idColumn(),
-    tenantId: uuid('tenant_id').notNull().references(() => tenantsTable.id, { onDelete: 'cascade' }),
+    tenantId: bigint('tenant_id', { mode: 'number' }).notNull().references(() => tenantsTable.id, { onDelete: 'cascade' }),
     minLength: integer('min_length').default(8).notNull(),
     requireUppercase: boolean('require_uppercase').default(true).notNull(),
     requireLowercase: boolean('require_lowercase').default(true).notNull(),

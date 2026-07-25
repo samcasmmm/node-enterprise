@@ -10,7 +10,7 @@ export class DeviceRepository extends BaseRepository<typeof devicesTable, Device
     super(devicesTable);
   }
 
-  async findByFingerprint(userId: string, fingerprint: string): Promise<Device | null> {
+  async findByFingerprint(userId: number, fingerprint: string): Promise<Device | null> {
     const [row] = await db
       .select()
       .from(devicesTable)
@@ -19,7 +19,7 @@ export class DeviceRepository extends BaseRepository<typeof devicesTable, Device
     return row ?? null;
   }
 
-  async findForUser(userId: string): Promise<Device[]> {
+  async findForUser(userId: number): Promise<Device[]> {
     return db.select().from(devicesTable).where(eq(devicesTable.userId, userId));
   }
 }

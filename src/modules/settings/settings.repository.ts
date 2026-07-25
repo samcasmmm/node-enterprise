@@ -10,11 +10,11 @@ export class SettingsRepository extends BaseRepository<typeof settingsTable, Set
     super(settingsTable);
   }
 
-  async findByCategory(tenantId: string, category: string): Promise<Setting[]> {
+  async findByCategory(tenantId: number, category: string): Promise<Setting[]> {
     return db.select().from(settingsTable).where(and(eq(settingsTable.tenantId, tenantId), eq(settingsTable.category, category)));
   }
 
-  async upsert(tenantId: string, category: string, key: string, value: unknown, isSecret = false): Promise<Setting> {
+  async upsert(tenantId: number, category: string, key: string, value: unknown, isSecret = false): Promise<Setting> {
     const [existing] = await db
       .select()
       .from(settingsTable)

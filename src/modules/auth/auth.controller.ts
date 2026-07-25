@@ -91,7 +91,7 @@ export class AuthController {
   });
 
   revokeDevice = asyncHandler(async (req: Request, res: Response) => {
-    await this.deviceService.revoke(req.params.id);
+    await this.deviceService.revoke(Number(req.params.id));
     res.build.withModule('auth').withStatus(HTTP_STATUS_CODES.OK).withMessage('Device revoked.').send();
   });
 }

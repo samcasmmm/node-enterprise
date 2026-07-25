@@ -89,12 +89,12 @@ async function main() {
   const files = {};
 
   // --- Schema -------------------------------------------------------------
-  files[`${schemaDir}/${entitySnake}.schema.ts`] = `import { pgTable, varchar, uuid, text } from 'drizzle-orm/pg-core';
+  files[`${schemaDir}/${entitySnake}.schema.ts`] = `import { pgTable, varchar, text, bigint } from 'drizzle-orm/pg-core';
 import { idColumn, timestamps, isActiveColumn } from '@/database/schemas/core/_shared.columns.js';
 ${tenantScoped ? "import { tenantsTable } from '@/database/schemas/core/multi-tenancy.schema.js';\n" : ''}
 export const ${entity}sTable = pgTable('${tableName}', {
   id: idColumn(),
-${tenantScoped ? "  tenantId: uuid('tenant_id').notNull().references(() => tenantsTable.id, { onDelete: 'cascade' }),\n" : ''}  name: varchar('name', { length: 150 }).notNull(),
+${tenantScoped ? "  tenantId: bigint('tenant_id', { mode: 'number' }).notNull().references(() => tenantsTable.id, { onDelete: 'cascade' }),\n" : ''}  name: varchar('name', { length: 150 }).notNull(),
   description: text('description'),
   isActive: isActiveColumn(),
 ${softDelete ? '  ...timestamps,\n' : '  ...timestamps, // includes deletedAt; remove manually if you truly do not want soft delete\n'}});

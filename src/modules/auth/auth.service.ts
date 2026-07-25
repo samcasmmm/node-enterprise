@@ -10,7 +10,7 @@ import type { AuditLogService } from '@/modules/audit/audit-log.service.js';
 import type { User } from '@/database/schemas/index.js';
 
 export interface LoginParams {
-  tenantId: string;
+  tenantId: number;
   email: string;
   password: string;
   ipAddress?: string;
@@ -18,8 +18,8 @@ export interface LoginParams {
 }
 
 export interface RegisterParams {
-  tenantId: string;
-  organizationId?: string;
+  tenantId: number;
+  organizationId?: number;
   name: string;
   email: string;
   password: string;
@@ -43,7 +43,7 @@ export class AuthService {
     @inject(TOKENS.AuditLogService) private readonly auditLogService: AuditLogService,
   ) {}
 
-  private async assertPasswordPolicy(tenantId: string, password: string): Promise<void> {
+  private async assertPasswordPolicy(tenantId: number, password: string): Promise<void> {
     const policy = await this.passwordPolicyRepository.findForTenant(tenantId);
     const minLength = policy?.minLength ?? 8;
     if (password.length < minLength) throw new ValidationError(`Password must be at least ${minLength} characters.`);
@@ -105,7 +105,7 @@ export class AuthService {
   }
 
   /** Used after an OAuth provider (Google/Microsoft/Apple) resolves an identity via better-auth. */
-  async loginWithUserId(userId: string, ipAddress?: string, userAgent?: string): Promise<{ user: User; tokens: TokenPair }> {
+  async loginWithUserId(userId: number, ipAddress?: string, userAgent?: string): Promise<{ user: User; tokens: TokenPair }> {
     const user = await this.userRepository.findById(userId);
     if (!user) throw new UnauthorizedError('User not found.');
     const tokens = await this.issueSession(user, ipAddress, userAgent);
@@ -140,7 +140,7 @@ export class AuthService {
     return this.issueSession(user);
   }
 
-  async logout(userId: string, refreshToken?: string): Promise<void> {
+  async logout(userId: number, refreshToken?: string): Promise<void> {
     if (!refreshToken) return;
     const session = await this.sessionRepository.findByToken(refreshToken);
     if (session && session.userId === userId) {

@@ -17,7 +17,7 @@ export class OtpService {
     @inject(TOKENS.NotificationService) private readonly notificationService: NotificationService,
   ) {}
 
-  async send(destination: string, purpose: string, userId?: string, channel: 'email' | 'sms' = 'email'): Promise<void> {
+  async send(destination: string, purpose: string, userId?: number, channel: 'email' | 'sms' = 'email'): Promise<void> {
     const code = String(crypto.randomInt(100000, 999999));
     const codeHash = await bcrypt.hash(code, 10);
 

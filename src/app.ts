@@ -92,7 +92,7 @@ class App {
 
   private initializeRoutes(): void {
     this.instance.use('/api/docs', docsRouter);
-    this.instance.use('/api/v1', moduleRoutes);
+    this.instance.use('/api', moduleRoutes);
   }
 
   private initializeErrorHandling(): void {

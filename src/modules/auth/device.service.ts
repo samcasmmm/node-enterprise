@@ -7,7 +7,7 @@ import type { DeviceRepository } from './device.repository.js';
 export class DeviceService {
   constructor(@inject(TOKENS.DeviceRepository) private readonly deviceRepository: DeviceRepository) {}
 
-  async registerOrTouch(userId: string, fingerprint: string, meta: { name?: string; platform?: string; ipAddress?: string }) {
+  async registerOrTouch(userId: number, fingerprint: string, meta: { name?: string; platform?: string; ipAddress?: string }) {
     const existing = await this.deviceRepository.findByFingerprint(userId, fingerprint);
     if (existing) {
       return this.deviceRepository.updateById(existing.id, {
@@ -25,15 +25,15 @@ export class DeviceService {
     } as any);
   }
 
-  async listForUser(userId: string) {
+  async listForUser(userId: number) {
     return this.deviceRepository.findForUser(userId);
   }
 
-  async trust(deviceId: string) {
+  async trust(deviceId: number) {
     return this.deviceRepository.updateById(deviceId, { isTrusted: true } as any);
   }
 
-  async revoke(deviceId: string) {
+  async revoke(deviceId: number) {
     return this.deviceRepository.updateById(deviceId, { revokedAt: new Date() } as any);
   }
 }

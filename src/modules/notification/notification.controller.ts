@@ -19,7 +19,7 @@ export class NotificationController extends BaseController<NotificationLog, NewN
   });
 
   markRead = asyncHandler(async (req: Request, res: Response) => {
-    await this.notificationService.markRead(req.params.id);
+    await this.notificationService.markRead(Number(req.params.id));
     res.build.withModule('notification').withStatus(HTTP_STATUS_CODES.OK).withMessage('Marked as read.').send();
   });
 }

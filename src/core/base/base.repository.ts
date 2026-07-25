@@ -20,9 +20,9 @@ export interface PaginatedResult<T> {
 }
 
 export interface TenantScope {
-  tenantId?: string;
-  organizationId?: string;
-  branchId?: string;
+  tenantId?: number;
+  organizationId?: number;
+  branchId?: number;
 }
 
 /**

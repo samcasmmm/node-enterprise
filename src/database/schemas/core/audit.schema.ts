@@ -1,4 +1,4 @@
-import { pgTable, varchar, uuid, text, timestamp, jsonb, index } from 'drizzle-orm/pg-core';
+import { pgTable, varchar,  text, timestamp, jsonb, index, bigint } from 'drizzle-orm/pg-core';
 import { idColumn } from './_shared.columns.js';
 import { tenantsTable } from './multi-tenancy.schema.js';
 import { usersTable } from './users.schema.js';
@@ -10,8 +10,8 @@ import { usersTable } from './users.schema.js';
  */
 export const auditLogsTable = pgTable('audit_logs', {
   id: idColumn(),
-  tenantId: uuid('tenant_id').references(() => tenantsTable.id, { onDelete: 'set null' }),
-  actorUserId: uuid('actor_user_id').references(() => usersTable.id, { onDelete: 'set null' }),
+  tenantId: bigint('tenant_id', { mode: 'number' }).references(() => tenantsTable.id, { onDelete: 'set null' }),
+  actorUserId: bigint('actor_user_id', { mode: 'number' }).references(() => usersTable.id, { onDelete: 'set null' }),
   action: varchar('action', { length: 60 }).notNull(), // create | update | delete | login | ...
   entityType: varchar('entity_type', { length: 100 }).notNull(), // e.g. 'user', 'hrms.employee'
   entityId: varchar('entity_id', { length: 100 }),
@@ -28,8 +28,8 @@ export const auditLogsTable = pgTable('audit_logs', {
 /** Activity Logs — human-readable feed ("Jane created Invoice #123"), lighter than audit logs. */
 export const activityLogsTable = pgTable('activity_logs', {
   id: idColumn(),
-  tenantId: uuid('tenant_id').references(() => tenantsTable.id, { onDelete: 'set null' }),
-  actorUserId: uuid('actor_user_id').references(() => usersTable.id, { onDelete: 'set null' }),
+  tenantId: bigint('tenant_id', { mode: 'number' }).references(() => tenantsTable.id, { onDelete: 'set null' }),
+  actorUserId: bigint('actor_user_id', { mode: 'number' }).references(() => usersTable.id, { onDelete: 'set null' }),
   message: text('message').notNull(),
   moduleKey: varchar('module_key', { length: 80 }),
   metadata: jsonb('metadata').default({}),
@@ -39,8 +39,8 @@ export const activityLogsTable = pgTable('activity_logs', {
 /** Login Logs — every authentication attempt, success or failure. */
 export const loginLogsTable = pgTable('login_logs', {
   id: idColumn(),
-  tenantId: uuid('tenant_id').references(() => tenantsTable.id, { onDelete: 'set null' }),
-  userId: uuid('user_id').references(() => usersTable.id, { onDelete: 'set null' }),
+  tenantId: bigint('tenant_id', { mode: 'number' }).references(() => tenantsTable.id, { onDelete: 'set null' }),
+  userId: bigint('user_id', { mode: 'number' }).references(() => usersTable.id, { onDelete: 'set null' }),
   email: varchar('email', { length: 255 }),
   success: varchar('success', { length: 10 }).notNull(), // 'true' | 'false' (kept text for easy filtering export)
   reason: varchar('reason', { length: 150 }), // e.g. 'invalid_password', 'mfa_required'
@@ -52,8 +52,8 @@ export const loginLogsTable = pgTable('login_logs', {
 /** Change History — field-level before/after diff, useful for entities needing granular rollback/compliance trails. */
 export const changeHistoryTable = pgTable('change_history', {
   id: idColumn(),
-  tenantId: uuid('tenant_id').references(() => tenantsTable.id, { onDelete: 'set null' }),
-  actorUserId: uuid('actor_user_id').references(() => usersTable.id, { onDelete: 'set null' }),
+  tenantId: bigint('tenant_id', { mode: 'number' }).references(() => tenantsTable.id, { onDelete: 'set null' }),
+  actorUserId: bigint('actor_user_id', { mode: 'number' }).references(() => usersTable.id, { onDelete: 'set null' }),
   entityType: varchar('entity_type', { length: 100 }).notNull(),
   entityId: varchar('entity_id', { length: 100 }).notNull(),
   fieldName: varchar('field_name', { length: 100 }).notNull(),
@@ -65,8 +65,8 @@ export const changeHistoryTable = pgTable('change_history', {
 /** Error Logs — application errors captured for support/debugging (separate from infra logs/Sentry). */
 export const errorLogsTable = pgTable('error_logs', {
   id: idColumn(),
-  tenantId: uuid('tenant_id').references(() => tenantsTable.id, { onDelete: 'set null' }),
-  userId: uuid('user_id').references(() => usersTable.id, { onDelete: 'set null' }),
+  tenantId: bigint('tenant_id', { mode: 'number' }).references(() => tenantsTable.id, { onDelete: 'set null' }),
+  userId: bigint('user_id', { mode: 'number' }).references(() => usersTable.id, { onDelete: 'set null' }),
   message: text('message').notNull(),
   stack: text('stack'),
   path: varchar('path', { length: 255 }),
@@ -77,8 +77,8 @@ export const errorLogsTable = pgTable('error_logs', {
 /** Security Logs — sensitive security events (MFA changes, permission escalation, API key creation, ...). */
 export const securityLogsTable = pgTable('security_logs', {
   id: idColumn(),
-  tenantId: uuid('tenant_id').references(() => tenantsTable.id, { onDelete: 'set null' }),
-  actorUserId: uuid('actor_user_id').references(() => usersTable.id, { onDelete: 'set null' }),
+  tenantId: bigint('tenant_id', { mode: 'number' }).references(() => tenantsTable.id, { onDelete: 'set null' }),
+  actorUserId: bigint('actor_user_id', { mode: 'number' }).references(() => usersTable.id, { onDelete: 'set null' }),
   event: varchar('event', { length: 100 }).notNull(), // e.g. 'mfa_enabled', 'role_escalated', 'api_key_created'
   severity: varchar('severity', { length: 20 }).default('info').notNull(), // info | warning | critical
   metadata: jsonb('metadata').default({}),

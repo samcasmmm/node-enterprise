@@ -15,7 +15,7 @@ export class PermissionRepository extends BaseRepository<typeof permissionsTable
   }
 
   /** All permission keys granted to a user directly via roles + group-inherited roles. */
-  async getPermissionKeysForUser(userId: string): Promise<Set<string>> {
+  async getPermissionKeysForUser(userId: number): Promise<Set<string>> {
     const directRolePerms = await db
       .select({ key: permissionsTable.key })
       .from(userRolesTable)
@@ -47,7 +47,7 @@ export class PermissionRepository extends BaseRepository<typeof permissionsTable
   }
 
   /** Permission keys the user has access to via an active delegation from another user. */
-  async getDelegatedPermissionKeys(userId: string): Promise<Set<string>> {
+  async getDelegatedPermissionKeys(userId: number): Promise<Set<string>> {
     const now = new Date();
     const delegations = await db.select().from(delegationsTable).where(eq(delegationsTable.delegateUserId, userId));
     const active = delegations.filter((d) => d.isActive && d.startsAt <= now && d.endsAt >= now);

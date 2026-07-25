@@ -6,9 +6,9 @@ import { TOKENS } from '@/core/container/tokens.js';
 import type { PermissionRepository } from './permission.repository.js';
 
 export interface AuthzScope {
-  tenantId?: string;
-  organizationId?: string;
-  branchId?: string;
+  tenantId?: number;
+  organizationId?: number;
+  branchId?: number;
 }
 
 /**
@@ -27,7 +27,7 @@ export interface AuthzScope {
 export class AuthorizationService {
   constructor(@inject(TOKENS.PermissionRepository) private readonly permissionRepository: PermissionRepository) {}
 
-  async can(userId: string, permissionKey: string, scope: AuthzScope = {}): Promise<boolean> {
+  async can(userId: number, permissionKey: string, scope: AuthzScope = {}): Promise<boolean> {
     const [moduleKey] = permissionKey.split(':');
 
     if (scope.tenantId) {
@@ -44,7 +44,7 @@ export class AuthorizationService {
     return all.has(permissionKey);
   }
 
-  private async isModuleEnabled(tenantId: string, moduleKey: string): Promise<boolean> {
+  private async isModuleEnabled(tenantId: number, moduleKey: string): Promise<boolean> {
     // Core modules (auth, user, rbac, settings, subscription, audit, notification, tenant)
     // are always available — they're the foundation, not purchasable add-ons.
     const CORE_MODULES = new Set(['tenant', 'auth', 'user', 'rbac', 'settings', 'subscription', 'audit', 'notification']);

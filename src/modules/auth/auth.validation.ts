@@ -4,7 +4,7 @@ export const registerSchema = z.object({
   name: z.string().min(2).max(150),
   email: z.string().email(),
   password: z.string().min(8),
-  organizationId: z.string().uuid().optional(),
+  organizationId: z.coerce.number().optional(),
 });
 
 export const loginSchema = z.object({
@@ -33,6 +33,6 @@ export const mfaEnrollSchema = z.object({
 });
 
 export const mfaVerifySchema = z.object({
-  factorId: z.string().uuid(),
+  factorId: z.coerce.number(),
   code: z.string().min(6).max(6),
 });

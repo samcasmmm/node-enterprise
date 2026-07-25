@@ -12,18 +12,18 @@ export class RoleService extends BaseService<Role, NewRole> {
     super(roleRepository, 'Role');
   }
 
-  async setPermissions(roleId: string, permissionIds: string[]): Promise<void> {
+  async setPermissions(roleId: number, permissionIds: number[]): Promise<void> {
     await db.delete(rolePermissionsTable).where(eq(rolePermissionsTable.roleId, roleId));
     if (permissionIds.length) {
       await db.insert(rolePermissionsTable).values(permissionIds.map((permissionId) => ({ roleId, permissionId })));
     }
   }
 
-  async assignToUser(userId: string, roleId: string, scope: { branchId?: string; departmentId?: string } = {}): Promise<void> {
+  async assignToUser(userId: number, roleId: number, scope: { branchId?: number; departmentId?: number } = {}): Promise<void> {
     await db.insert(userRolesTable).values({ userId, roleId, ...scope });
   }
 
-  async unassignFromUser(userId: string, roleId: string): Promise<void> {
+  async unassignFromUser(userId: number, roleId: number): Promise<void> {
     await db.delete(userRolesTable).where(eq(userRolesTable.userId, userId));
   }
 }

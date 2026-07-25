@@ -8,11 +8,11 @@ export const createRoleSchema = z.object({
 export const updateRoleSchema = createRoleSchema.partial();
 
 export const setPermissionsSchema = z.object({
-  permissionIds: z.array(z.string().uuid()),
+  permissionIds: z.array(z.coerce.number()),
 });
 
 export const assignRoleSchema = z.object({
-  userId: z.string().uuid(),
-  branchId: z.string().uuid().optional(),
-  departmentId: z.string().uuid().optional(),
+  userId: z.coerce.number(),
+  branchId: z.coerce.number().optional(),
+  departmentId: z.coerce.number().optional(),
 });

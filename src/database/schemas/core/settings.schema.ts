@@ -1,4 +1,4 @@
-import { pgTable, varchar, uuid, boolean, text, jsonb, integer, uniqueIndex, index } from 'drizzle-orm/pg-core';
+import { pgTable, varchar,  boolean, text, jsonb, integer, uniqueIndex, index, bigint } from 'drizzle-orm/pg-core';
 import { idColumn, timestamps } from './_shared.columns.js';
 import { tenantsTable } from './multi-tenancy.schema.js';
 import { usersTable } from './users.schema.js';
@@ -14,7 +14,7 @@ export const settingsTable = pgTable(
   'settings',
   {
     id: idColumn(),
-    tenantId: uuid('tenant_id').notNull().references(() => tenantsTable.id, { onDelete: 'cascade' }),
+    tenantId: bigint('tenant_id', { mode: 'number' }).notNull().references(() => tenantsTable.id, { onDelete: 'cascade' }),
     category: varchar('category', { length: 60 }).notNull(), // general | localization | tax | email | sms | whatsapp | storage | theme | branding | custom_domain
     key: varchar('key', { length: 150 }).notNull(),
     value: jsonb('value').default({}),
@@ -32,8 +32,8 @@ export const apiKeysTable = pgTable(
   'api_keys',
   {
     id: idColumn(),
-    tenantId: uuid('tenant_id').notNull().references(() => tenantsTable.id, { onDelete: 'cascade' }),
-    createdByUserId: uuid('created_by_user_id').references(() => usersTable.id, { onDelete: 'set null' }),
+    tenantId: bigint('tenant_id', { mode: 'number' }).notNull().references(() => tenantsTable.id, { onDelete: 'cascade' }),
+    createdByUserId: bigint('created_by_user_id', { mode: 'number' }).references(() => usersTable.id, { onDelete: 'set null' }),
     name: varchar('name', { length: 150 }).notNull(),
     keyPrefix: varchar('key_prefix', { length: 20 }).notNull(),
     keyHash: text('key_hash').notNull(),
@@ -50,7 +50,7 @@ export const customDomainsTable = pgTable(
   'custom_domains',
   {
     id: idColumn(),
-    tenantId: uuid('tenant_id').notNull().references(() => tenantsTable.id, { onDelete: 'cascade' }),
+    tenantId: bigint('tenant_id', { mode: 'number' }).notNull().references(() => tenantsTable.id, { onDelete: 'cascade' }),
     domain: varchar('domain', { length: 255 }).notNull(),
     isVerified: boolean('is_verified').default(false).notNull(),
     verificationToken: varchar('verification_token', { length: 150 }),

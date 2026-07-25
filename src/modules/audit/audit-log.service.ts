@@ -9,8 +9,8 @@ import {
 import type { AuditLogRepository } from './audit-log.repository.js';
 
 export interface RecordAuditParams {
-  tenantId?: string;
-  actorUserId?: string;
+  tenantId?: number;
+  actorUserId?: number;
   action: string;
   entityType: string;
   entityId?: string;
@@ -38,23 +38,23 @@ export class AuditLogService extends BaseService<AuditLog, NewAuditLog> {
     await this.auditLogRepository.create(params as any);
   }
 
-  async recordActivity(tenantId: string | undefined, actorUserId: string | undefined, message: string, moduleKey?: string, metadata: Record<string, unknown> = {}): Promise<void> {
+  async recordActivity(tenantId: number | undefined, actorUserId: number | undefined, message: string, moduleKey?: string, metadata: Record<string, unknown> = {}): Promise<void> {
     await db.insert(activityLogsTable).values({ tenantId, actorUserId, message, moduleKey, metadata });
   }
 
-  async recordLogin(params: { tenantId?: string; userId?: string; email?: string; success: boolean; reason?: string; ipAddress?: string; userAgent?: string }): Promise<void> {
+  async recordLogin(params: { tenantId?: number; userId?: number; email?: string; success: boolean; reason?: string; ipAddress?: string; userAgent?: string }): Promise<void> {
     await db.insert(loginLogsTable).values({ ...params, success: String(params.success) });
   }
 
-  async recordSecurityEvent(params: { tenantId?: string; actorUserId?: string; event: string; severity?: 'info' | 'warning' | 'critical'; metadata?: Record<string, unknown>; ipAddress?: string }): Promise<void> {
+  async recordSecurityEvent(params: { tenantId?: number; actorUserId?: number; event: string; severity?: 'info' | 'warning' | 'critical'; metadata?: Record<string, unknown>; ipAddress?: string }): Promise<void> {
     await db.insert(securityLogsTable).values({ ...params, severity: params.severity ?? 'info' });
   }
 
-  async recordError(params: { tenantId?: string; userId?: string; message: string; stack?: string; path?: string; statusCode?: number }): Promise<void> {
+  async recordError(params: { tenantId?: number; userId?: number; message: string; stack?: string; path?: string; statusCode?: number }): Promise<void> {
     await db.insert(errorLogsTable).values({ ...params, statusCode: params.statusCode ? String(params.statusCode) : undefined });
   }
 
-  async recordFieldChange(params: { tenantId?: string; actorUserId?: string; entityType: string; entityId: string; fieldName: string; oldValue?: unknown; newValue?: unknown }): Promise<void> {
+  async recordFieldChange(params: { tenantId?: number; actorUserId?: number; entityType: string; entityId: string; fieldName: string; oldValue?: unknown; newValue?: unknown }): Promise<void> {
     await db.insert(changeHistoryTable).values({
       ...params,
       oldValue: params.oldValue == null ? null : String(params.oldValue),

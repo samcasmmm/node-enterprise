@@ -14,12 +14,12 @@ export class RoleController extends BaseController<Role, NewRole> {
   }
 
   setPermissions = asyncHandler(async (req: Request, res: Response) => {
-    await this.roleService.setPermissions(req.params.id, req.body.permissionIds ?? []);
+    await this.roleService.setPermissions(Number(req.params.id), req.body.permissionIds ?? []);
     res.build.withModule('role').withStatus(HTTP_STATUS_CODES.OK).withMessage('Permissions updated.').send();
   });
 
   assignToUser = asyncHandler(async (req: Request, res: Response) => {
-    await this.roleService.assignToUser(req.body.userId, req.params.id, {
+    await this.roleService.assignToUser(req.body.userId, Number(req.params.id), {
       branchId: req.body.branchId,
       departmentId: req.body.departmentId,
     });

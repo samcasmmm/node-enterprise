@@ -14,11 +14,11 @@ import type { MfaRepository } from './mfa.repository.js';
 export class MfaService {
   constructor(@inject(TOKENS.MfaRepository) private readonly mfaRepository: MfaRepository) {}
 
-  async listFactors(userId: string) {
+  async listFactors(userId: number) {
     return this.mfaRepository.findForUser(userId);
   }
 
-  async enroll(userId: string, type: 'totp' | 'sms' | 'email' | 'webauthn') {
+  async enroll(userId: number, type: 'totp' | 'sms' | 'email' | 'webauthn') {
     const secret = crypto.randomBytes(20).toString('hex');
     const recoveryCodes = Array.from({ length: 8 }, () => crypto.randomBytes(4).toString('hex'));
     return this.mfaRepository.create({
@@ -31,7 +31,7 @@ export class MfaService {
     } as any);
   }
 
-  async verifyEnrollment(factorId: string, code: string) {
+  async verifyEnrollment(factorId: number, code: string) {
     const factor = await this.mfaRepository.findById(factorId);
     if (!factor) throw new ValidationError('MFA factor not found.');
     // Real TOTP validation belongs here (e.g. otplib.authenticator.check(code, factor.secret)).
@@ -41,7 +41,7 @@ export class MfaService {
     return this.mfaRepository.updateById(factorId, { isVerified: true, isPrimary: true } as any);
   }
 
-  async remove(factorId: string, userId: string) {
+  async remove(factorId: number, userId: number) {
     return this.mfaRepository.deleteById(factorId, { } as any);
   }
 }

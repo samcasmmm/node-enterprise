@@ -1,4 +1,4 @@
-import { pgTable, varchar, uuid, boolean, text, timestamp, jsonb, index, uniqueIndex, pgEnum } from 'drizzle-orm/pg-core';
+import { pgTable, varchar,  boolean, text, timestamp, jsonb, index, uniqueIndex, pgEnum, bigint } from 'drizzle-orm/pg-core';
 import { idColumn, timestamps, isActiveColumn } from './_shared.columns.js';
 import { tenantsTable } from './multi-tenancy.schema.js';
 import { usersTable } from './users.schema.js';
@@ -10,7 +10,7 @@ export const notificationChannelEnum = pgEnum('notification_channel', [
 /** Templates — one content template per (tenant, channel, key), e.g. ('t1','email','invoice.paid'). */
 export const notificationTemplatesTable = pgTable('notification_templates', {
   id: idColumn(),
-  tenantId: uuid('tenant_id').references(() => tenantsTable.id, { onDelete: 'cascade' }),
+  tenantId: bigint('tenant_id', { mode: 'number' }).references(() => tenantsTable.id, { onDelete: 'cascade' }),
   key: varchar('key', { length: 150 }).notNull(), // e.g. 'invoice.paid', 'user.welcome'
   channel: notificationChannelEnum('channel').notNull(),
   subject: varchar('subject', { length: 255 }),
@@ -24,8 +24,8 @@ export const notificationStatusEnum = pgEnum('notification_status', ['queued', '
 /** Notification Log — every dispatched notification, across every channel. */
 export const notificationsTable = pgTable('notifications', {
   id: idColumn(),
-  tenantId: uuid('tenant_id').references(() => tenantsTable.id, { onDelete: 'cascade' }),
-  userId: uuid('user_id').references(() => usersTable.id, { onDelete: 'cascade' }),
+  tenantId: bigint('tenant_id', { mode: 'number' }).references(() => tenantsTable.id, { onDelete: 'cascade' }),
+  userId: bigint('user_id', { mode: 'number' }).references(() => usersTable.id, { onDelete: 'cascade' }),
   channel: notificationChannelEnum('channel').notNull(),
   templateKey: varchar('template_key', { length: 150 }),
   title: varchar('title', { length: 255 }),
@@ -44,7 +44,7 @@ export const notificationsTable = pgTable('notifications', {
 /** Webhooks — outbound event subscriptions a tenant configures (e.g. push CRM events to their own systems). */
 export const webhooksTable = pgTable('webhooks', {
   id: idColumn(),
-  tenantId: uuid('tenant_id').notNull().references(() => tenantsTable.id, { onDelete: 'cascade' }),
+  tenantId: bigint('tenant_id', { mode: 'number' }).notNull().references(() => tenantsTable.id, { onDelete: 'cascade' }),
   url: text('url').notNull(),
   events: jsonb('events').default([]), // e.g. ['invoice.paid', 'employee.created']
   secret: text('secret').notNull(), // HMAC signing secret for payload verification
@@ -55,7 +55,7 @@ export const webhooksTable = pgTable('webhooks', {
 /** Webhook Deliveries — attempt log per event fired to a webhook (for retries / debugging). */
 export const webhookDeliveriesTable = pgTable('webhook_deliveries', {
   id: idColumn(),
-  webhookId: uuid('webhook_id').notNull().references(() => webhooksTable.id, { onDelete: 'cascade' }),
+  webhookId: bigint('webhook_id', { mode: 'number' }).notNull().references(() => webhooksTable.id, { onDelete: 'cascade' }),
   event: varchar('event', { length: 150 }).notNull(),
   payload: jsonb('payload').default({}),
   responseStatus: varchar('response_status', { length: 10 }),

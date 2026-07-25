@@ -16,8 +16,8 @@ import { DiscordChannel } from './channels/discord.channel.js';
 import { WebhookChannel } from './channels/webhook.channel.js';
 
 export interface DispatchParams {
-  tenantId?: string;
-  userId?: string;
+  tenantId?: number;
+  userId?: number;
   channel: 'email' | 'sms' | 'push' | 'whatsapp' | 'slack' | 'teams' | 'discord' | 'webhook';
   to: string;
   templateKey?: string;
@@ -45,7 +45,7 @@ export class NotificationService extends BaseService<NotificationLog, NewNotific
     );
   }
 
-  async resolveTemplate(tenantId: string | undefined, key: string, channel: string) {
+  async resolveTemplate(tenantId: number | undefined, key: string, channel: string) {
     const [template] = await db
       .select()
       .from(notificationTemplatesTable)
@@ -94,7 +94,7 @@ export class NotificationService extends BaseService<NotificationLog, NewNotific
     return log;
   }
 
-  async markRead(id: string): Promise<void> {
+  async markRead(id: number): Promise<void> {
     await this.notificationRepository.updateById(id, { status: 'read', readAt: new Date() } as any);
   }
 }

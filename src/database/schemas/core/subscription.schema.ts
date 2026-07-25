@@ -1,4 +1,4 @@
-import { pgTable, varchar, uuid, boolean, text, timestamp, integer, numeric, jsonb, index, uniqueIndex, pgEnum } from 'drizzle-orm/pg-core';
+import { pgTable, varchar,  boolean, text, timestamp, integer, numeric, jsonb, index, uniqueIndex, pgEnum, bigint } from 'drizzle-orm/pg-core';
 import { idColumn, timestamps, isActiveColumn } from './_shared.columns.js';
 import { tenantsTable } from './multi-tenancy.schema.js';
 
@@ -22,8 +22,8 @@ export const subscriptionStatusEnum = pgEnum('subscription_status', ['trialing',
 /** Subscriptions — a tenant's active/historical subscription to a plan. */
 export const subscriptionsTable = pgTable('subscriptions', {
   id: idColumn(),
-  tenantId: uuid('tenant_id').notNull().references(() => tenantsTable.id, { onDelete: 'cascade' }),
-  planId: uuid('plan_id').notNull().references(() => plansTable.id, { onDelete: 'restrict' }),
+  tenantId: bigint('tenant_id', { mode: 'number' }).notNull().references(() => tenantsTable.id, { onDelete: 'cascade' }),
+  planId: bigint('plan_id', { mode: 'number' }).notNull().references(() => plansTable.id, { onDelete: 'restrict' }),
   status: subscriptionStatusEnum('status').default('trialing').notNull(),
   startsAt: timestamp('starts_at', { withTimezone: true }).defaultNow().notNull(),
   currentPeriodEnd: timestamp('current_period_end', { withTimezone: true }).notNull(),
@@ -51,8 +51,8 @@ export const invoiceStatusEnum = pgEnum('invoice_status', ['draft', 'open', 'pai
 /** Invoices — one per billing period per subscription. */
 export const invoicesTable = pgTable('invoices', {
   id: idColumn(),
-  tenantId: uuid('tenant_id').notNull().references(() => tenantsTable.id, { onDelete: 'cascade' }),
-  subscriptionId: uuid('subscription_id').references(() => subscriptionsTable.id, { onDelete: 'set null' }),
+  tenantId: bigint('tenant_id', { mode: 'number' }).notNull().references(() => tenantsTable.id, { onDelete: 'cascade' }),
+  subscriptionId: bigint('subscription_id', { mode: 'number' }).references(() => subscriptionsTable.id, { onDelete: 'set null' }),
   invoiceNumber: varchar('invoice_number', { length: 60 }).notNull(),
   status: invoiceStatusEnum('status').default('open').notNull(),
   subtotal: numeric('subtotal', { precision: 12, scale: 2 }).notNull(),
@@ -72,8 +72,8 @@ export const paymentStatusEnum = pgEnum('payment_status', ['pending', 'succeeded
 /** Payments — settlement attempts against an invoice. */
 export const paymentsTable = pgTable('payments', {
   id: idColumn(),
-  tenantId: uuid('tenant_id').notNull().references(() => tenantsTable.id, { onDelete: 'cascade' }),
-  invoiceId: uuid('invoice_id').notNull().references(() => invoicesTable.id, { onDelete: 'cascade' }),
+  tenantId: bigint('tenant_id', { mode: 'number' }).notNull().references(() => tenantsTable.id, { onDelete: 'cascade' }),
+  invoiceId: bigint('invoice_id', { mode: 'number' }).notNull().references(() => invoicesTable.id, { onDelete: 'cascade' }),
   amount: numeric('amount', { precision: 12, scale: 2 }).notNull(),
   currency: varchar('currency', { length: 10 }).default('USD').notNull(),
   status: paymentStatusEnum('status').default('pending').notNull(),
@@ -85,8 +85,8 @@ export const paymentsTable = pgTable('payments', {
 /** Usage Meter — metered consumption per tenant (seats, API calls, storage GB, ...) for usage-based billing. */
 export const usageMetersTable = pgTable('usage_meters', {
   id: idColumn(),
-  tenantId: uuid('tenant_id').notNull().references(() => tenantsTable.id, { onDelete: 'cascade' }),
-  subscriptionId: uuid('subscription_id').references(() => subscriptionsTable.id, { onDelete: 'cascade' }),
+  tenantId: bigint('tenant_id', { mode: 'number' }).notNull().references(() => tenantsTable.id, { onDelete: 'cascade' }),
+  subscriptionId: bigint('subscription_id', { mode: 'number' }).references(() => subscriptionsTable.id, { onDelete: 'cascade' }),
   metricKey: varchar('metric_key', { length: 80 }).notNull(), // e.g. 'seats', 'api_calls', 'storage_gb'
   quantity: numeric('quantity', { precision: 14, scale: 2 }).default('0').notNull(),
   periodStart: timestamp('period_start', { withTimezone: true }).notNull(),

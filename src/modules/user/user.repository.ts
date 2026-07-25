@@ -10,7 +10,7 @@ export class UserRepository extends BaseRepository<typeof usersTable, User, NewU
     super(usersTable);
   }
 
-  async findByEmail(tenantId: string, email: string): Promise<User | null> {
+  async findByEmail(tenantId: number, email: string): Promise<User | null> {
     const [row] = await db
       .select()
       .from(usersTable)

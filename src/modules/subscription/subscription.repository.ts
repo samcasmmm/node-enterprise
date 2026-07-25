@@ -10,7 +10,7 @@ export class SubscriptionRepository extends BaseRepository<typeof subscriptionsT
     super(subscriptionsTable);
   }
 
-  async findActiveForTenant(tenantId: string): Promise<Subscription | null> {
+  async findActiveForTenant(tenantId: number): Promise<Subscription | null> {
     const [row] = await db.select().from(subscriptionsTable).where(eq(subscriptionsTable.tenantId, tenantId)).limit(1);
     return row ?? null;
   }

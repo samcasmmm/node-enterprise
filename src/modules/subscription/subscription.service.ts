@@ -23,7 +23,7 @@ export class SubscriptionService extends BaseService<Subscription, any> {
     super(subscriptionRepository, 'Subscription');
   }
 
-  async purchase(tenantId: string, planId: string): Promise<Subscription> {
+  async purchase(tenantId: number, planId: number): Promise<Subscription> {
     const plan = await this.planRepository.findById(planId);
     if (!plan) throw new NotFoundError('Plan');
 
@@ -52,7 +52,7 @@ export class SubscriptionService extends BaseService<Subscription, any> {
     return subscription;
   }
 
-  async cancel(tenantId: string): Promise<void> {
+  async cancel(tenantId: number): Promise<void> {
     const subscription = await this.subscriptionRepository.findActiveForTenant(tenantId);
     if (!subscription) throw new NotFoundError('Subscription');
     await this.subscriptionRepository.updateById(subscription.id, { status: 'cancelled', cancelledAt: new Date() } as any);

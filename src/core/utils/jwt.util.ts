@@ -19,6 +19,6 @@ export function issueTokens(payload: DecodedToken): TokenPair {
   return { accessToken, refreshToken };
 }
 
-export function verifyRefreshToken(token: string): { userId: string } {
-  return jwt.verify(token, appConfig.jwt.refreshSecret) as { userId: string };
+export function verifyRefreshToken(token: string): { userId: number } {
+  return jwt.verify(token, appConfig.jwt.refreshSecret) as { userId: number };
 }

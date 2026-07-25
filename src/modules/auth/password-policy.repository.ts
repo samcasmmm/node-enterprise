@@ -10,7 +10,7 @@ export class PasswordPolicyRepository extends BaseRepository<typeof passwordPoli
     super(passwordPoliciesTable);
   }
 
-  async findForTenant(tenantId: string): Promise<PasswordPolicy | null> {
+  async findForTenant(tenantId: number): Promise<PasswordPolicy | null> {
     const [row] = await db.select().from(passwordPoliciesTable).where(eq(passwordPoliciesTable.tenantId, tenantId)).limit(1);
     return row ?? null;
   }

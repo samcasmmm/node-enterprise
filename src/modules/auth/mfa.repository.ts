@@ -10,7 +10,7 @@ export class MfaRepository extends BaseRepository<typeof mfaFactorsTable, MfaFac
     super(mfaFactorsTable);
   }
 
-  async findForUser(userId: string): Promise<MfaFactor[]> {
+  async findForUser(userId: number): Promise<MfaFactor[]> {
     return db.select().from(mfaFactorsTable).where(eq(mfaFactorsTable.userId, userId));
   }
 }

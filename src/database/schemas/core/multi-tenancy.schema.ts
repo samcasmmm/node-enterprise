@@ -1,4 +1,4 @@
-import { pgTable, varchar, uuid, jsonb, pgEnum, text, uniqueIndex, index } from 'drizzle-orm/pg-core';
+import { pgTable, varchar,  jsonb, pgEnum, text, uniqueIndex, index, bigint } from 'drizzle-orm/pg-core';
 import { idColumn, timestamps, isActiveColumn } from './_shared.columns.js';
 
 export const tenantStatusEnum = pgEnum('tenant_status', ['active', 'suspended', 'trial', 'cancelled']);
@@ -34,7 +34,7 @@ export const organizationsTable = pgTable(
   'organizations',
   {
     id: idColumn(),
-    tenantId: uuid('tenant_id').notNull().references(() => tenantsTable.id, { onDelete: 'cascade' }),
+    tenantId: bigint('tenant_id', { mode: 'number' }).notNull().references(() => tenantsTable.id, { onDelete: 'cascade' }),
     name: varchar('name', { length: 150 }).notNull(),
     legalName: varchar('legal_name', { length: 200 }),
     registrationNumber: varchar('registration_number', { length: 100 }),
@@ -52,8 +52,8 @@ export const branchesTable = pgTable(
   'branches',
   {
     id: idColumn(),
-    tenantId: uuid('tenant_id').notNull().references(() => tenantsTable.id, { onDelete: 'cascade' }),
-    organizationId: uuid('organization_id').notNull().references(() => organizationsTable.id, { onDelete: 'cascade' }),
+    tenantId: bigint('tenant_id', { mode: 'number' }).notNull().references(() => tenantsTable.id, { onDelete: 'cascade' }),
+    organizationId: bigint('organization_id', { mode: 'number' }).notNull().references(() => organizationsTable.id, { onDelete: 'cascade' }),
     name: varchar('name', { length: 150 }).notNull(),
     code: varchar('code', { length: 30 }),
     address: text('address'),
@@ -73,8 +73,8 @@ export const businessUnitsTable = pgTable(
   'business_units',
   {
     id: idColumn(),
-    tenantId: uuid('tenant_id').notNull().references(() => tenantsTable.id, { onDelete: 'cascade' }),
-    organizationId: uuid('organization_id').notNull().references(() => organizationsTable.id, { onDelete: 'cascade' }),
+    tenantId: bigint('tenant_id', { mode: 'number' }).notNull().references(() => tenantsTable.id, { onDelete: 'cascade' }),
+    organizationId: bigint('organization_id', { mode: 'number' }).notNull().references(() => organizationsTable.id, { onDelete: 'cascade' }),
     name: varchar('name', { length: 150 }).notNull(),
     code: varchar('code', { length: 30 }),
     isActive: isActiveColumn(),
@@ -88,13 +88,13 @@ export const departmentsTable = pgTable(
   'departments',
   {
     id: idColumn(),
-    tenantId: uuid('tenant_id').notNull().references(() => tenantsTable.id, { onDelete: 'cascade' }),
-    organizationId: uuid('organization_id').notNull().references(() => organizationsTable.id, { onDelete: 'cascade' }),
-    branchId: uuid('branch_id').references(() => branchesTable.id, { onDelete: 'set null' }),
-    parentDepartmentId: uuid('parent_department_id'),
+    tenantId: bigint('tenant_id', { mode: 'number' }).notNull().references(() => tenantsTable.id, { onDelete: 'cascade' }),
+    organizationId: bigint('organization_id', { mode: 'number' }).notNull().references(() => organizationsTable.id, { onDelete: 'cascade' }),
+    branchId: bigint('branch_id', { mode: 'number' }).references(() => branchesTable.id, { onDelete: 'set null' }),
+    parentDepartmentId: bigint('parent_department_id', { mode: 'number' }),
     name: varchar('name', { length: 150 }).notNull(),
     code: varchar('code', { length: 30 }),
-    headUserId: uuid('head_user_id'),
+    headUserId: bigint('head_user_id', { mode: 'number' }),
     isActive: isActiveColumn(),
     ...timestamps,
   },
@@ -106,9 +106,9 @@ export const costCentersTable = pgTable(
   'cost_centers',
   {
     id: idColumn(),
-    tenantId: uuid('tenant_id').notNull().references(() => tenantsTable.id, { onDelete: 'cascade' }),
-    organizationId: uuid('organization_id').notNull().references(() => organizationsTable.id, { onDelete: 'cascade' }),
-    departmentId: uuid('department_id').references(() => departmentsTable.id, { onDelete: 'set null' }),
+    tenantId: bigint('tenant_id', { mode: 'number' }).notNull().references(() => tenantsTable.id, { onDelete: 'cascade' }),
+    organizationId: bigint('organization_id', { mode: 'number' }).notNull().references(() => organizationsTable.id, { onDelete: 'cascade' }),
+    departmentId: bigint('department_id', { mode: 'number' }).references(() => departmentsTable.id, { onDelete: 'set null' }),
     name: varchar('name', { length: 150 }).notNull(),
     code: varchar('code', { length: 30 }).notNull(),
     budget: varchar('budget', { length: 30 }),
@@ -123,11 +123,11 @@ export const workspacesTable = pgTable(
   'workspaces',
   {
     id: idColumn(),
-    tenantId: uuid('tenant_id').notNull().references(() => tenantsTable.id, { onDelete: 'cascade' }),
-    organizationId: uuid('organization_id').references(() => organizationsTable.id, { onDelete: 'cascade' }),
+    tenantId: bigint('tenant_id', { mode: 'number' }).notNull().references(() => tenantsTable.id, { onDelete: 'cascade' }),
+    organizationId: bigint('organization_id', { mode: 'number' }).references(() => organizationsTable.id, { onDelete: 'cascade' }),
     name: varchar('name', { length: 150 }).notNull(),
     slug: varchar('slug', { length: 150 }).notNull(),
-    ownerUserId: uuid('owner_user_id'),
+    ownerUserId: bigint('owner_user_id', { mode: 'number' }),
     isActive: isActiveColumn(),
     ...timestamps,
   },
